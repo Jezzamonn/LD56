@@ -106,6 +106,7 @@ export class Bullet extends Entity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.dx > 0,
             loop: true,
+            layers: this.guy.typeSet,
         });
     }
 }

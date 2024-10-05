@@ -57,6 +57,7 @@ export class Creature extends RunningEntity {
             guy.midX = this.midX;
             guy.midY = this.midY;
             guy.randomKnockback();
+            guy.type = 'normal';
             this.level.addEntity(guy);
         }
 

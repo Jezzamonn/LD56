@@ -13,6 +13,8 @@ import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
 
+type GuyType = 'unique' | 'normal' | 'fire';
+
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
@@ -39,8 +41,17 @@ export class Guy extends RunningEntity {
 
     player: Player | undefined;
 
-    type = rng() < 0.5 ? 'normal' : 'fire';
+    internalType: GuyType = 'normal';
     typeSet = new Set([this.type]);
+
+    set type(type: GuyType) {
+        this.internalType = type;
+        this.typeSet = new Set([type]);
+    }
+
+    get type() {
+        return this.internalType;
+    }
 
     update(dt: number): void {
         this.animCount += dt;
@@ -68,6 +79,7 @@ export class Guy extends RunningEntity {
         if (player.isTouchingEntity(this)) {
             this.player = player;
             this.followPlayer(dt);
+            this.player.guys.push(this);
         } else {
             this.dampX(dt);
             this.maybeSmallJump();

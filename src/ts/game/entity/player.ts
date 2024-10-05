@@ -152,11 +152,7 @@ export class Player extends RunningEntity {
 
         // Debug: Spawn a lil guy
         if (keys.wasPressedThisFrame('KeyG')) {
-            const guy = new Guy(this.level);
-            guy.midX = this.midX;
-            guy.maxY = this.minY;
-            this.level.addEntity(guy);
-            this.guys.push(guy);
+            this.spawnGuy();
         }
 
         // Checking for winning
@@ -165,6 +161,15 @@ export class Player extends RunningEntity {
         ) {
             this.level.win();
         }
+    }
+
+    spawnGuy() {
+        const guy = new Guy(this.level);
+        guy.midX = this.midX;
+        guy.maxY = this.minY;
+        guy.type = 'unique';//rng() < 0.5 ? 'normal' : 'fire'
+        this.level.addEntity(guy);
+        this.guys.push(guy);
     }
 
     fireBullet() {
