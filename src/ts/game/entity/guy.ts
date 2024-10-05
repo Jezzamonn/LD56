@@ -1,14 +1,20 @@
 import { FacingDir } from '../../common';
-import { FPS, physFromPx, PHYSICS_SCALE, rng, TILE_SIZE } from '../../constants';
+import {
+    FPS,
+    physFromPx,
+    PHYSICS_SCALE,
+    rng,
+    TILE_SIZE,
+} from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { lerp } from '../../lib/util';
-import { Entity } from './entity';
 import { Player } from './player';
+import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
 
 // A lil guy that follows the player
-export class Guy extends Entity {
+export class Guy extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
     jumpSpeed = 3 * PHYSICS_SCALE * FPS;
     smallJumpSpeed = 1 * PHYSICS_SCALE * FPS;
@@ -34,30 +40,51 @@ export class Guy extends Entity {
     player: Player | undefined;
 
     update(dt: number): void {
-        if (this.player === undefined) {
-            this.player = this.level.getEntity(Player)!;
-        }
-
         this.animCount += dt;
 
         if (this.jumpCount >= 0) {
             this.jumpCount -= dt;
         }
 
+        if (this.player === undefined) {
+            this.waitForPlayer(dt);
+        } else {
+            this.followPlayer(dt);
+        }
+
+        this.limitFallSpeed(dt);
+        this.applyGravity(dt);
+
+        this.move(dt);
+    }
+
+    waitForPlayer(dt: number) {
+        const player = this.level.player;
+
+        // Check if we're near the player.
+        if (player.isTouchingEntity(this)) {
+            this.player = player;
+            this.followPlayer(dt);
+        } else {
+            this.dampX(dt);
+            this.maybeSmallJump();
+        }
+    }
+
+    followPlayer(dt: number) {
+        const player = this.player!;
         // TODO: This could be replaced with proper pathfinding. For the moment, just move towards the player.
-        if (this.midX < this.player.midX - this.closeness) {
+        if (this.midX < player.midX - this.closeness) {
             this.reflexCount += dt;
             if (this.reflexCount > this.reflexTime) {
-                this.moveRight(dt);
+                this.runRight(dt);
             }
-        }
-        else if (this.midX > this.player.midX + this.closeness) {
+        } else if (this.midX > player.midX + this.closeness) {
             this.reflexCount += dt;
             if (this.reflexCount > this.reflexTime) {
-                this.moveLeft(dt);
+                this.runLeft(dt);
             }
-        }
-        else {
+        } else {
             this.reflexCount = 0;
             this.dampX(dt);
         }
@@ -67,20 +94,18 @@ export class Guy extends Entity {
             if (this.isTooFarCount > this.maxIsTooFarCount) {
                 this.teleportToPlayer();
             }
-        }
-        else {
+        } else {
             this.isTooFarCount = 0;
         }
 
-        const playerIsAbove = this.player.maxY < this.maxY - TILE_SIZE;
+        const playerIsAbove = player.maxY < this.maxY - TILE_SIZE;
 
         if (playerIsAbove) {
             if (!this.tryingToJump) {
                 this.tryingToJump = true;
                 this.jumpCount = this.jumpReflexTime;
             }
-        }
-        else {
+        } else {
             this.tryingToJump = false;
         }
 
@@ -89,16 +114,16 @@ export class Guy extends Entity {
                 this.jump();
                 this.tryingToJump = false;
                 this.jumpCount = 0;
-            }
-            else if (rng() < 0.03) {
-                this.smallJump();
+            } else {
+                this.maybeSmallJump();
             }
         }
+    }
 
-        this.limitFallSpeed(dt);
-        this.applyGravity(dt);
-
-        this.move(dt);
+    maybeSmallJump() {
+        if (rng() < 0.03) {
+            this.smallJump();
+        }
     }
 
     teleportToPlayer() {
@@ -123,22 +148,10 @@ export class Guy extends Entity {
         this.dy = -this.jumpSpeed;
     }
 
-    moveLeft(dt: number) {
-        const accel = this.isStanding() ? this.groundAccel : this.airAccel;
-        this.dx -= accel * dt;
-        if (this.dx < -this.runSpeed) {
-            this.dx = -this.runSpeed;
-        }
-        this.facingDir = FacingDir.Left;
-    }
-
-    moveRight(dt: number) {
-        const accel = this.isStanding() ? this.groundAccel : this.airAccel;
-        this.dx += accel * dt;
-        if (this.dx > this.runSpeed) {
-            this.dx = this.runSpeed;
-        }
-        this.facingDir = FacingDir.Right;
+    randomKnockback() {
+        this.dy = -this.smallJumpSpeed;
+        this.dx = lerp(-this.runSpeed, this.runSpeed, rng());
+        this.facingDir = rng() < 0.5 ? FacingDir.Left : FacingDir.Right;
     }
 
     onLeftCollision(): void {
@@ -152,7 +165,6 @@ export class Guy extends Entity {
         super.onRightCollision();
         this.dx = -initialDx;
     }
-
 
     render(context: CanvasRenderingContext2D): void {
         // super.render(context);
@@ -173,6 +185,6 @@ export class Guy extends Entity {
     }
 
     static async preload() {
-        await Aseprite.loadImage({ name: 'lilguy', basePath: "sprites" });
+        await Aseprite.loadImage({ name: 'lilguy', basePath: 'sprites' });
     }
 }

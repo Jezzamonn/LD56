@@ -1,7 +1,7 @@
-import { Point } from "../../common";
+import { Dir } from "../../common";
 import { FPS, physFromPx, PHYSICS_SCALE } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
-import { Level } from "../level";
+import { Creature } from "./enemies/creature";
 import { Entity } from "./entity";
 import { Guy } from "./guy";
 import { Player } from "./player";
@@ -14,29 +14,23 @@ export class Bullet extends Entity {
     lifetime = 3;
     guy: Guy;
 
-    constructor(level: Level) {
-        super(level);
+    gravity = 0;
+    xDampAmt = 0;
+    w = physFromPx(4);
+    h = physFromPx(4);
+    dir: Dir;
 
-        // No gravity I guess :)
-        this.gravity = 0;
-        // No damping either
-        this.xDampAmt = 0;
-
-        this.w = physFromPx(4);
-        this.h = physFromPx(4);
-
-        this.debugColor = "white";
-    }
-
-    setDirection(dir: Point) {
-        this.dx = dir.x * SPEED;
-        this.dy = dir.y * SPEED;
+    setDirection(dir: Dir) {
+        this.dir = dir;
+        const point = Dir.toPoint(dir);
+        this.dx = point.x * SPEED;
+        this.dy = point.y * SPEED;
 
         // Stretch w or h
-        if (dir.x !== 0) {
+        if (point.x !== 0) {
             this.w = physFromPx(16);
         }
-        if (dir.y !== 0) {
+        if (point.y !== 0) {
             this.h = physFromPx(16);
         }
     }
@@ -76,6 +70,17 @@ export class Bullet extends Entity {
 
     update(dt: number) {
         super.update(dt);
+
+        // Check if we've hit an enemy
+        for (const entity of this.level.entities) {
+            if (entity instanceof Creature) {
+                if (this.isTouchingEntity(entity)) {
+                    entity.hurt(this.dir)
+                    this.endBullet();
+                    return;
+                }
+            }
+        }
 
         if (this.animCount > this.lifetime) {
             this.endBullet();

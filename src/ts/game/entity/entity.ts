@@ -1,5 +1,5 @@
-import { Dir, Dirs, FacingDir, Point } from "../../common";
-import { FPS, PHYSICS_SCALE } from "../../constants";
+import { Dir, FacingDir, Point } from "../../common";
+import { FPS, PHYSICS_SCALE, rng } from "../../constants";
 import { Level } from "../level";
 import { PhysicTile, TileSource } from "../tile/tiles";
 
@@ -15,7 +15,7 @@ export class Entity {
     // Copying some constants from my previous games. Might need tweaking.
     gravity = 0;
     xDampAmt = 0.125 * PHYSICS_SCALE * FPS * FPS;
-    animCount = 0;
+    animCount = rng();
     facingDir = FacingDir.Right;
     canCollide = true;
     done = false;
@@ -31,8 +31,8 @@ export class Entity {
     update(dt: number) {
         this.animCount += dt;
 
-        this.applyGravity(dt);
         this.limitFallSpeed(dt);
+        this.applyGravity(dt);
         this.dampX(dt);
 
         this.move(dt);
@@ -142,7 +142,7 @@ export class Entity {
         if (!Array.isArray(tile)) {
             tile = [tile];
         }
-        const corners = Dirs.cornersInDirection(dir);
+        const corners = Dir.cornersInDirection(dir);
         for (const corner of corners) {
             const x = this.x + corner.x * this.w + (offset?.x ?? 0);
             const y = this.y + corner.y * this.h + (offset?.y ?? 0);

@@ -8,7 +8,7 @@ import {
     PHYSICS_SCALE,
     RIGHT_KEYS,
     SHOOT_KEYS,
-    UP_KEYS,
+    UP_KEYS
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { NullKeys } from '../../lib/keys';
@@ -16,8 +16,8 @@ import { SFX } from '../sfx';
 import { ObjectTile } from '../tile/object-layer';
 import { PhysicTile } from '../tile/tiles';
 import { Bullet } from './bullet';
-import { Entity } from './entity';
 import { Guy } from './guy';
+import { RunningEntity } from './running-entity';
 
 const imageName = 'player';
 
@@ -26,7 +26,7 @@ const imageName = 'player';
 const COYOTE_TIME_SECS = 0.1;
 const BUFFER_JUMP_TIME_SECS = 0.1;
 
-export class Player extends Entity {
+export class Player extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
     jumpSpeed = 3 * PHYSICS_SCALE * FPS;
     wallSlideSpeed = 1 * PHYSICS_SCALE * FPS;
@@ -34,8 +34,6 @@ export class Player extends Entity {
 
     groundAccel = (0.25 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
-    // TODO: Tweak gravity? This was from Teeniest Seed.
-    gravity = 0.13 * PHYSICS_SCALE * FPS * FPS;
 
     controlledByPlayer = true;
 
@@ -72,29 +70,6 @@ export class Player extends Entity {
         this.onLeftWallCount = 0;
         this.onRightWallCount = 0;
         this.bufferedJumpCount = 0;
-    }
-
-    dampX(dt: number): void {
-        this.xDampAmt = this.isStanding() ? this.groundAccel : this.airAccel;
-        super.dampX(dt);
-    }
-
-    moveLeft(dt: number) {
-        const accel = this.isStanding() ? this.groundAccel : this.airAccel;
-        this.dx -= accel * dt;
-        if (this.dx < -this.runSpeed) {
-            this.dx = -this.runSpeed;
-        }
-        this.facingDir = FacingDir.Left;
-    }
-
-    moveRight(dt: number) {
-        const accel = this.isStanding() ? this.groundAccel : this.airAccel;
-        this.dx += accel * dt;
-        if (this.dx > this.runSpeed) {
-            this.dx = this.runSpeed;
-        }
-        this.facingDir = FacingDir.Right;
     }
 
     update(dt: number) {
@@ -160,9 +135,9 @@ export class Player extends Entity {
         const left = keys.anyIsPressed(LEFT_KEYS);
         const right = keys.anyIsPressed(RIGHT_KEYS);
         if (left && !right) {
-            this.moveLeft(dt);
+            this.runLeft(dt);
         } else if (right && !left) {
-            this.moveRight(dt);
+            this.runRight(dt);
         } else {
             this.dampX(dt);
         }
@@ -209,16 +184,13 @@ export class Player extends Entity {
         if (this.lookingUp) {
             bullet.midX = this.midX + facingDirMult * physFromPx(5);
             bullet.midY = this.midY - physFromPx(18);
-            bullet.setDirection({ x: 0, y: -1 });
+            bullet.setDirection(Dir.Up);
         } else if (this.lookingDown) {
             bullet.midX = this.midX + facingDirMult * physFromPx(5);
             bullet.midY = this.midY + physFromPx(3);
-            bullet.setDirection({ x: 0, y: 1 });
+            bullet.setDirection(Dir.Down);
         } else {
-            bullet.setDirection({
-                x: facingDirMult,
-                y: 0,
-            });
+            bullet.setDirection(this.facingDir == FacingDir.Right ? Dir.Right : Dir.Left);
             bullet.midX = this.midX + facingDirMult * physFromPx(12);
             bullet.midY = this.midY + physFromPx(1);
         }

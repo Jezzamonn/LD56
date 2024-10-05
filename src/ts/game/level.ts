@@ -1,8 +1,9 @@
 import { Point } from "../common";
-import { TILE_SIZE_PX } from "../constants";
+import { rng, TILE_SIZE_PX } from "../constants";
 import { Images } from "../lib/images";
 import { Background } from "./background";
 import { FocusCamera } from "./camera";
+import { Creature } from "./entity/enemies/creature";
 import { Entity } from "./entity/entity";
 import { Player } from "./entity/player";
 import { Game } from "./game";
@@ -27,6 +28,8 @@ export class Level {
     start: Point = { x: 0, y: 0 };
 
     won = false;
+
+    player: Player;
 
     constructor(game: Game, levelInfo: LevelInfo) {
         this.game = game;
@@ -91,6 +94,30 @@ export class Level {
         // this.camera.target = () => ({x: this.start.x, y: this.start.y});
 
         this.spawnPlayer();
+
+        // Spawn some enemies to test things.
+        const spawnPositions: Point[] = [];
+        for (let x = this.tiles.baseLayer.minX; x <= this.tiles.baseLayer.maxX; x++) {
+            for (let y = this.tiles.baseLayer.minY; y <= this.tiles.baseLayer.maxY - 1; y++) {
+                const tile = this.tiles.baseLayer.getTile({ x, y });
+                const below = this.tiles.baseLayer.getTile({ x, y: y + 1 });
+                if (tile === BaseTile.Background && below === BaseTile.Wall) {
+                    spawnPositions.push({ x, y });
+                }
+            }
+        }
+        for (let i = 0; i < 5; i++) {
+            if (spawnPositions.length === 0) {
+                break;
+            }
+            const index = Math.floor(rng() * spawnPositions.length);
+            const pos = spawnPositions.splice(index, 1)[0];
+            const basePos = this.tiles.getTileCoord(pos, { x: 0.5, y: 1 })
+            const enemy = new Creature(this);
+            enemy.midX = basePos.x;
+            enemy.maxY = basePos.y;
+            this.entities.push(enemy);
+        }
     }
 
     addEntity(entity: Entity) {
@@ -124,6 +151,8 @@ export class Level {
         player.midX = this.start.x;
         player.maxY = this.start.y;
         this.entities.push(player);
+
+        this.player = player;
 
         this.camera.target = () => player.cameraFocus();
     }
