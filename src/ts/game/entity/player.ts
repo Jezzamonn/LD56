@@ -119,16 +119,18 @@ export class Player extends RunningEntity {
         if (this.bufferedJumpCount > 0) {
             if (this.onGroundCount > 0) {
                 this.jump();
-            } else if (this.onLeftWallCount > 0) {
-                // Wall jump! To da right
-                this.dx = this.runSpeed;
-                this.facingDir = FacingDir.Right;
-                this.jump();
-            } else if (this.onRightWallCount > 0) {
-                this.dx = -this.runSpeed;
-                this.facingDir = FacingDir.Left;
-                this.jump();
             }
+            // Disable wall jumps for now.
+            // else if (this.onLeftWallCount > 0) {
+            //     // Wall jump! To da right
+            //     this.dx = this.runSpeed;
+            //     this.facingDir = FacingDir.Right;
+            //     this.jump();
+            // } else if (this.onRightWallCount > 0) {
+            //     this.dx = -this.runSpeed;
+            //     this.facingDir = FacingDir.Left;
+            //     this.jump();
+            // }
         }
 
         const left = keys.anyIsPressed(LEFT_KEYS);
@@ -141,8 +143,8 @@ export class Player extends RunningEntity {
             this.dampX(dt);
         }
 
-        this.applyGravity(dt);
         this.limitFallSpeed(dt);
+        this.applyGravity(dt);
         this.move(dt);
 
         // Fire a bullet. After moving so that the facing direction is updated.

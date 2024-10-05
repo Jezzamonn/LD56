@@ -1,16 +1,17 @@
-import { Point } from "../common";
-import { rng, TILE_SIZE_PX } from "../constants";
-import { Images } from "../lib/images";
-import { Background } from "./background";
-import { FocusCamera } from "./camera";
-import { Creature } from "./entity/enemies/creature";
-import { Entity } from "./entity/entity";
-import { Player } from "./entity/player";
-import { Game } from "./game";
-import { LevelInfo } from "./levels";
-import { BaseTile } from "./tile/base-layer";
-import { ObjectTile } from "./tile/object-layer";
-import { Tiles } from "./tile/tiles";
+import { FacingDir, Point } from '../common';
+import { TILE_SIZE_PX } from '../constants';
+import { Images } from '../lib/images';
+import { Background } from './background';
+import { FocusCamera } from './camera';
+import { Creature, CreatureBehavior } from './entity/enemies/creature';
+import { Entity } from './entity/entity';
+import { Guy } from './entity/guy';
+import { Player } from './entity/player';
+import { Game } from './game';
+import { LevelInfo } from './levels';
+import { BaseTile } from './tile/base-layer';
+import { ObjectTile } from './tile/object-layer';
+import { Tiles } from './tile/tiles';
 
 // Contains everything in one level, including the tiles and the entities.
 export class Level {
@@ -18,7 +19,7 @@ export class Level {
     entities: Entity[] = [];
     entitiesToAdd: Entity[] = [];
     image: HTMLImageElement | undefined;
-    levelInfo: LevelInfo
+    levelInfo: LevelInfo;
 
     camera: FocusCamera = new FocusCamera();
     background: Background;
@@ -43,8 +44,8 @@ export class Level {
         this.tiles = new Tiles(image.width, image.height);
 
         this.background = new Background(this, {
-            x: TILE_SIZE_PX * image.width / 2,
-            y: TILE_SIZE_PX * image.height / 2,
+            x: (TILE_SIZE_PX * image.width) / 2,
+            y: (TILE_SIZE_PX * image.height) / 2,
         });
 
         // Draw the image to a canvas to get the pixels.
@@ -58,32 +59,69 @@ export class Level {
         const imageData = context.getImageData(0, 0, image.width, image.height);
         for (let y = 0; y < image.height; y++) {
             for (let x = 0; x < image.width; x++) {
-
-                const basePos = this.tiles.getTileCoord({x, y}, { x: 0.5, y: 1 })
+                const basePos = this.tiles.getTileCoord(
+                    { x, y },
+                    { x: 0.5, y: 1 }
+                );
 
                 const color = pixelToColorString(imageData, x, y);
                 if (color === 'ffffff') {
                     // Don't need to do anything for empty tiles as they're the default.
-                }
-                else if (color === '000000') {
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Wall, { allowGrow: false });
-                }
-                else if (color === 'aaaaaa') {
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Background, { allowGrow: false });
-                }
-                else if (color === 'ffff00') {
+                } else if (color === '000000') {
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Wall, {
+                        allowGrow: false,
+                    });
+                } else if (color === 'aaaaaa') {
+                    this.tiles.baseLayer.setTile(
+                        { x, y },
+                        BaseTile.Background,
+                        { allowGrow: false }
+                    );
+                } else if (color === 'ffff00') {
                     // Spawn the lil guy.
-                }
-                else if (color === 'ff0000') {
+                    const guy = new Guy(this);
+                    guy.midX = basePos.x;
+                    guy.maxY = basePos.y;
+                    guy.type = 'unique';
+                    this.entities.push(guy);
+                } else if (color === 'ff00ff') {
                     this.start = basePos;
-                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Spawn, { allowGrow: false });
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
-                }
-                else if (color === '0000ff') {
-                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Platform, { allowGrow: false });
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
-                }
-                else {
+                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Spawn, {
+                        allowGrow: false,
+                    });
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
+                        allowGrow: false,
+                    });
+                } else if (color.slice(0, 5) === 'ff000') {
+                    const enemy = new Creature(this);
+                    enemy.midX = basePos.x;
+                    enemy.maxY = basePos.y;
+
+                    const modifier = parseInt(color[5], 16);
+
+                    enemy.facingDir = modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
+
+                    switch (modifier) {
+                        case 0:
+                        case 1:
+                            enemy.behavior = CreatureBehavior.Still;
+                            break;
+                        case 2:
+                        case 3:
+                            enemy.behavior = CreatureBehavior.Running;
+                            break;
+                    }
+
+                    this.entities.push(enemy);
+
+                    // this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Platform, { allowGrow: false });
+                    // this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
+                } else if (color === '0000ff') {
+                    // TODO: Destroyable blocks.
+
+                    // this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Platform, { allowGrow: false });
+                    // this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
+                } else {
                     console.log(`Unknown color: ${color} at ${x}, ${y}.`);
                 }
             }
@@ -94,29 +132,29 @@ export class Level {
 
         this.spawnPlayer();
 
-        // Spawn some enemies to test things.
-        const spawnPositions: Point[] = [];
-        for (let x = this.tiles.baseLayer.minX; x <= this.tiles.baseLayer.maxX; x++) {
-            for (let y = this.tiles.baseLayer.minY; y <= this.tiles.baseLayer.maxY - 1; y++) {
-                const tile = this.tiles.baseLayer.getTile({ x, y });
-                const below = this.tiles.baseLayer.getTile({ x, y: y + 1 });
-                if (tile === BaseTile.Background && below === BaseTile.Wall) {
-                    spawnPositions.push({ x, y });
-                }
-            }
-        }
-        for (let i = 0; i < 5; i++) {
-            if (spawnPositions.length === 0) {
-                break;
-            }
-            const index = Math.floor(rng() * spawnPositions.length);
-            const pos = spawnPositions.splice(index, 1)[0];
-            const basePos = this.tiles.getTileCoord(pos, { x: 0.5, y: 1 })
-            const enemy = new Creature(this);
-            enemy.midX = basePos.x;
-            enemy.maxY = basePos.y;
-            this.entities.push(enemy);
-        }
+        // // Spawn some enemies to test things.
+        // const spawnPositions: Point[] = [];
+        // for (let x = this.tiles.baseLayer.minX; x <= this.tiles.baseLayer.maxX; x++) {
+        //     for (let y = this.tiles.baseLayer.minY; y <= this.tiles.baseLayer.maxY - 1; y++) {
+        //         const tile = this.tiles.baseLayer.getTile({ x, y });
+        //         const below = this.tiles.baseLayer.getTile({ x, y: y + 1 });
+        //         if (tile === BaseTile.Background && below === BaseTile.Wall) {
+        //             spawnPositions.push({ x, y });
+        //         }
+        //     }
+        // }
+        // for (let i = 0; i < 5; i++) {
+        //     if (spawnPositions.length === 0) {
+        //         break;
+        //     }
+        //     const index = Math.floor(rng() * spawnPositions.length);
+        //     const pos = spawnPositions.splice(index, 1)[0];
+        //     const basePos = this.tiles.getTileCoord(pos, { x: 0.5, y: 1 })
+        //     const enemy = new Creature(this);
+        //     enemy.midX = basePos.x;
+        //     enemy.maxY = basePos.y;
+        //     this.entities.push(enemy);
+        // }
     }
 
     addEntity(entity: Entity) {
@@ -143,7 +181,6 @@ export class Level {
         }
         return result;
     }
-
 
     spawnPlayer() {
         const player = new Player(this);
@@ -198,5 +235,9 @@ function pixelToColorString(imageData: ImageData, x: number, y: number) {
     const r = imageData.data[i];
     const g = imageData.data[i + 1];
     const b = imageData.data[i + 2];
-    return r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
+    return (
+        r.toString(16).padStart(2, '0') +
+        g.toString(16).padStart(2, '0') +
+        b.toString(16).padStart(2, '0')
+    );
 }

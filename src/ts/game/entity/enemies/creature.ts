@@ -4,6 +4,11 @@ import { Aseprite } from '../../../lib/aseprite';
 import { Guy } from '../guy';
 import { RunningEntity } from '../running-entity';
 
+export enum CreatureBehavior {
+    Still,
+    Running,
+}
+
 export class Creature extends RunningEntity {
     w = physFromPx(13);
     h = physFromPx(10);
@@ -14,9 +19,27 @@ export class Creature extends RunningEntity {
 
     health = 3;
 
+    behavior = CreatureBehavior.Running;
+
     update(dt: number): void {
         this.animCount += dt;
 
+        switch (this.behavior) {
+            case CreatureBehavior.Still:
+                this.dampX(dt);
+                break;
+            case CreatureBehavior.Running:
+                this.updateRunning(dt);
+                break;
+        }
+
+        this.limitFallSpeed(dt);
+        this.applyGravity(dt);
+
+        this.move(dt);
+    }
+
+    updateRunning(dt: number): void {
         if (this.isStanding()) {
             if (this.facingDir == FacingDir.Left) {
                 this.runLeft(dt);
@@ -28,11 +51,6 @@ export class Creature extends RunningEntity {
         else {
             this.dampX(dt);
         }
-
-        this.limitFallSpeed(dt);
-        this.applyGravity(dt);
-
-        this.move(dt);
     }
 
     hurt(dir: Dir): void {

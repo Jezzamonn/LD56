@@ -9,7 +9,7 @@ export interface LevelInfo {
 
 export const LEVELS: LevelInfo[] = [
     {
-        name: 'level1',
+        name: 'level',
     },
     {
         name: 'level2',

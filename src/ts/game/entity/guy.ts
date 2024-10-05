@@ -113,7 +113,7 @@ export class Guy extends RunningEntity {
             this.isTooFarCount = 0;
         }
 
-        const playerIsAbove = player.maxY < this.maxY - TILE_SIZE;
+        const playerIsAbove = player.maxY < this.maxY - 0.9 * TILE_SIZE;
 
         if (playerIsAbove) {
             if (!this.tryingToJump) {
