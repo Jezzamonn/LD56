@@ -1,6 +1,5 @@
 import { Point } from "../common";
-import { physFromPx, PHYSICS_SCALE } from "../constants";
-import { Aseprite } from "../lib/aseprite";
+import { physFromPx } from "../constants";
 import { Images } from "../lib/images";
 import { centerCanvas } from "./camera";
 import { Level } from "./level";
@@ -27,7 +26,7 @@ const BG_LAYERS: LayerInfo[] = [
         },
     },
     {
-        color: "#c0cbdc",
+        color: "#5a3c38",
     },
 ];
 export class Background {

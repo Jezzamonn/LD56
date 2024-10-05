@@ -4,6 +4,7 @@ import { ComboKeys, KeyboardKeys, NullKeys, RegularKeys } from "../lib/keys";
 import { Sounds } from "../lib/sounds";
 import { Background } from "./background";
 import { centerCanvas } from "./camera";
+import { Guy } from "./entity/guy";
 import { Player } from "./entity/player";
 import { Level } from "./level";
 import { Levels, LEVELS } from "./levels";
@@ -198,6 +199,7 @@ export class Game {
             Tiles.preload(),
             Player.preload(),
             Background.preload(),
+            Guy.preload(),
         ]);
         SFX.preload();
     }

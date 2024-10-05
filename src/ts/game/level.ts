@@ -97,6 +97,28 @@ export class Level {
         this.entitiesToAdd.push(entity);
     }
 
+    // Get entity by type
+    getEntity<T extends Entity>(type: new (level: Level) => T): T | undefined {
+        for (const entity of this.entities) {
+            if (entity instanceof type) {
+                return entity;
+            }
+        }
+        return undefined;
+    }
+
+    // Get all entities by type
+    getEntities<T extends Entity>(type: new (level: Level) => T): T[] {
+        const result: T[] = [];
+        for (const entity of this.entities) {
+            if (entity instanceof type) {
+                result.push(entity);
+            }
+        }
+        return result;
+    }
+
+
     spawnPlayer() {
         const player = new Player(this);
         player.midX = this.start.x;

@@ -1,5 +1,6 @@
 import { Point } from "../../common";
 import { FPS, physFromPx, PHYSICS_SCALE } from "../../constants";
+import { Aseprite } from "../../lib/aseprite";
 import { Level } from "../level";
 import { Entity } from "./entity";
 
@@ -18,8 +19,8 @@ export class Bullet extends Entity {
         // No damping either
         this.xDampAmt = 0;
 
-        this.w = physFromPx(3);
-        this.h = physFromPx(3);
+        this.w = physFromPx(4);
+        this.h = physFromPx(4);
 
         this.debugColor = "white";
     }
@@ -30,10 +31,10 @@ export class Bullet extends Entity {
 
         // Stretch w or h
         if (dir.x !== 0) {
-            this.w *= 2;
+            this.w = physFromPx(16);
         }
         if (dir.y !== 0) {
-            this.h *= 2;
+            this.h = physFromPx(16);
         }
     }
 
@@ -59,5 +60,23 @@ export class Bullet extends Entity {
         if (this.animCount > this.lifetime) {
             this.done = true;
         }
+    }
+
+    render(context: CanvasRenderingContext2D): void {
+        // super.render(context);
+
+        const animationName = this.w > this.h ? 'fire-hori' : 'fire-vert';
+
+        Aseprite.drawAnimation({
+            context,
+            image: "lilguy",
+            animationName,
+            time: this.animCount,
+            position: { x: this.midX, y: this.maxY },
+            scale: PHYSICS_SCALE,
+            anchorRatios: { x: 0.5, y: 1 },
+            flippedX: this.dx > 0,
+            loop: true,
+        });
     }
 }

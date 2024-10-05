@@ -20,6 +20,8 @@ export class Entity {
     canCollide = true;
     done = false;
 
+    maxFallSpeed = 3 * PHYSICS_SCALE * FPS;
+
     debugColor: string | undefined = '#ff00ff'
 
     constructor(level: Level) {
@@ -30,6 +32,7 @@ export class Entity {
         this.animCount += dt;
 
         this.applyGravity(dt);
+        this.limitFallSpeed(dt);
         this.dampX(dt);
 
         this.move(dt);
@@ -38,6 +41,13 @@ export class Entity {
     // Physics stuff
     applyGravity(dt: number) {
         this.dy += this.gravity * dt;
+    }
+
+    limitFallSpeed(dt: number) {
+        if (this.dy > this.maxFallSpeed) {
+            const diff = this.dy - this.maxFallSpeed;
+            this.dy -= 0.5 * diff;
+        }
     }
 
     dampX(dt: number) {

@@ -1,0 +1,65 @@
+{ "frames": [
+   {
+    "filename": "lilguy (normal) 0.aseprite",
+    "frame": { "x": 1, "y": 1, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (normal) 1.aseprite",
+    "frame": { "x": 1, "y": 21, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (normal) 2.aseprite",
+    "frame": { "x": 1, "y": 41, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (normal) 3.aseprite",
+    "frame": { "x": 17, "y": 1, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (normal) 4.aseprite",
+    "frame": { "x": 17, "y": 21, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.7-x64",
+  "image": "lilguy.png",
+  "format": "RGBA8888",
+  "size": { "w": 34, "h": 66 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "idle", "from": 0, "to": 0, "direction": "forward", "color": "#000000ff" },
+   { "name": "run", "from": 1, "to": 2, "direction": "forward", "color": "#000000ff" },
+   { "name": "fire-hori", "from": 3, "to": 3, "direction": "forward", "color": "#000000ff" },
+   { "name": "fire-vert", "from": 4, "to": 4, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "normal", "opacity": 255, "blendMode": "normal" }
+  ]
+ }
+}

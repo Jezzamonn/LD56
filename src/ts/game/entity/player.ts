@@ -1,4 +1,4 @@
-import { Dir, FacingDir, Point } from "../../common";
+import { Dir, FacingDir, Point } from '../../common';
 import {
     DOWN_KEYS,
     FPS,
@@ -9,17 +9,17 @@ import {
     RIGHT_KEYS,
     SHOOT_KEYS,
     UP_KEYS,
-} from "../../constants";
-import { Aseprite } from "../../lib/aseprite";
-import { NullKeys, RegularKeys } from "../../lib/keys";
-import { Level } from "../level";
-import { SFX } from "../sfx";
-import { ObjectTile } from "../tile/object-layer";
-import { PhysicTile } from "../tile/tiles";
-import { Bullet } from "./bullet";
-import { Entity } from "./entity";
+} from '../../constants';
+import { Aseprite } from '../../lib/aseprite';
+import { NullKeys } from '../../lib/keys';
+import { SFX } from '../sfx';
+import { ObjectTile } from '../tile/object-layer';
+import { PhysicTile } from '../tile/tiles';
+import { Bullet } from './bullet';
+import { Entity } from './entity';
+import { Guy } from './guy';
 
-const imageName = "player";
+const imageName = 'player';
 
 // How long the player gets to jump after falling off a platform.
 // 0.1 seems a little too lenient, but whatever :)
@@ -34,6 +34,8 @@ export class Player extends Entity {
 
     groundAccel = (0.25 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
+    // TODO: Tweak gravity? This was from Teeniest Seed.
+    gravity = 0.13 * PHYSICS_SCALE * FPS * FPS;
 
     controlledByPlayer = true;
 
@@ -47,14 +49,11 @@ export class Player extends Entity {
     bulletCooldown = 0.2;
     bulletCooldownCount = 0;
 
-    constructor(level: Level) {
-        super(level);
-        // TODO: Set w and h
-        this.w = physFromPx(6);
-        this.h = physFromPx(16);
-        // TODO: Tweak gravity? This was from Teeniest Seed.
-        this.gravity = 0.13 * PHYSICS_SCALE * FPS * FPS;
-    }
+    w = physFromPx(6);
+    h = physFromPx(16);
+
+    lookingUp = false;
+    lookingDown = false;
 
     cameraFocus(): Point {
         // TODO: This made people dizzy, should adjust it / change the speed the camera moves.
@@ -65,7 +64,7 @@ export class Player extends Entity {
 
     jump() {
         this.dy = -this.jumpSpeed;
-        SFX.play("jump");
+        SFX.play('jump');
         // Reset coyote time variables.
         this.onGroundCount = 0;
         this.onLeftWallCount = 0;
@@ -84,7 +83,6 @@ export class Player extends Entity {
         if (this.dx < -this.runSpeed) {
             this.dx = -this.runSpeed;
         }
-
         this.facingDir = FacingDir.Left;
     }
 
@@ -94,7 +92,6 @@ export class Player extends Entity {
         if (this.dx > this.runSpeed) {
             this.dx = this.runSpeed;
         }
-
         this.facingDir = FacingDir.Right;
     }
 
@@ -133,6 +130,11 @@ export class Player extends Entity {
             ? this.level.game.keys
             : new NullKeys();
 
+        const upPressed = keys.anyIsPressed(UP_KEYS);
+        const downPressed = keys.anyIsPressed(DOWN_KEYS);
+        this.lookingUp = upPressed && !downPressed;
+        this.lookingDown = downPressed && !upPressed;
+
         if (keys.anyWasPressedThisFrame(JUMP_KEYS)) {
             this.bufferedJumpCount = BUFFER_JUMP_TIME_SECS;
         }
@@ -163,14 +165,22 @@ export class Player extends Entity {
             this.dampX(dt);
         }
 
+        this.applyGravity(dt);
+        this.limitFallSpeed(dt);
+        this.move(dt);
+
         // Fire a bullet. After moving so that the facing direction is updated.
         if (keys.anyIsPressed(SHOOT_KEYS) && this.bulletCooldownCount <= 0) {
-            this.fireBullet(keys);
+            this.fireBullet();
         }
 
-        this.applyGravity(dt);
-        this.moveX(dt);
-        this.moveY(dt);
+        // Debug: Spawn a lil guy
+        if (keys.wasPressedThisFrame('KeyG')) {
+            const guy = new Guy(this.level);
+            guy.midX = this.midX;
+            guy.maxY = this.minY;
+            this.level.addEntity(guy);
+        }
 
         // Checking for winning
         if (
@@ -180,49 +190,56 @@ export class Player extends Entity {
         }
     }
 
-    fireBullet(keys: RegularKeys) {
+    fireBullet() {
         const bullet = new Bullet(this.level);
-        // Should probably appear from a logical position.
-        bullet.midX = this.midX;
-        bullet.midY = this.midY;
 
-        if (keys.anyIsPressed(UP_KEYS)) {
+        const facingDirMult = this.facingDir == FacingDir.Right ? 1 : -1;
+
+        if (this.lookingUp) {
+            bullet.midX = this.midX + facingDirMult * physFromPx(5);
+            bullet.midY = this.midY - physFromPx(18);
             bullet.setDirection({ x: 0, y: -1 });
-        } else if (keys.anyIsPressed(DOWN_KEYS)) {
+        } else if (this.lookingDown) {
+            bullet.midX = this.midX + facingDirMult * physFromPx(5);
+            bullet.midY = this.midY + physFromPx(3);
             bullet.setDirection({ x: 0, y: 1 });
         } else {
             bullet.setDirection({
-                x: this.facingDir == FacingDir.Right ? 1 : -1,
+                x: facingDirMult,
                 y: 0,
             });
+            bullet.midX = this.midX + facingDirMult * physFromPx(12);
+            bullet.midY = this.midY + physFromPx(1);
         }
+
         this.level.addEntity(bullet);
 
         this.bulletCooldownCount = this.bulletCooldown;
     }
 
-    applyGravity(dt: number): void {
+    limitFallSpeed(dt: number): void {
+        const updateSmoothness = 1 - Math.exp(-20 * dt);
         if (this.isAgainstLeftWall() || this.isAgainstRightWall()) {
             if (this.dy > this.wallSlideSpeed) {
                 const diff = this.dy - this.wallSlideSpeed;
-                this.dy -= 0.5 * diff;
+                this.dy -= updateSmoothness * diff;
+            }
+            if (this.dy > 0) {
+                this.facingDir = this.isAgainstLeftWall()
+                    ? FacingDir.Right
+                    : FacingDir.Left;
             }
         } else {
             if (this.dy > this.maxFallSpeed) {
                 const diff = this.dy - this.maxFallSpeed;
-                this.dy -= 0.5 * diff;
+                this.dy -= updateSmoothness * diff;
             }
         }
-        // if (!this.level.game.keys.anyIsPressed(JUMP_KEYS)) {
-        //     this.dy += 2 * this.gravity * dt;
-        //     return;
-        // }
-        this.dy += this.gravity * dt;
     }
 
     onDownCollision() {
         if (this.dy > 0.5 * this.jumpSpeed) {
-            SFX.play("land");
+            SFX.play('land');
         }
         super.onDownCollision();
     }
@@ -242,54 +259,53 @@ export class Player extends Entity {
     }
 
     getAnimationName() {
-        let animName = "idle";
+        let animName = 'idle';
         let loop = true;
-        let facingDir = this.facingDir;
 
-        // TODO: This logic will probably need to be tweaked for whatever character this game has.
         if (!this.isStanding()) {
             if (this.dy > 0 && this.isAgainstLeftWall()) {
-                animName = "wall-slide";
-                facingDir = FacingDir.Right;
+                animName = 'wall-slide';
             } else if (this.dy > 0 && this.isAgainstRightWall()) {
-                animName = "wall-slide";
-                facingDir = FacingDir.Left;
+                animName = 'wall-slide';
             } else {
-                animName = "jump";
-                if (this.dy < -0.3 * this.jumpSpeed) {
-                    animName += "-up";
-                } else if (this.dy > 0.3 * this.jumpSpeed) {
-                    animName += "-down";
-                } else {
-                    animName += "-mid";
-                }
+                animName = this.withLookSuffix('jump');
             }
         } else if (Math.abs(this.dx) > 0.01) {
-            animName = "run";
+            animName = this.withLookSuffix('run');
+        } else {
+            animName = this.withLookSuffix('idle');
         }
-        return { animName, loop, facingDir };
+        return { animName, loop };
+    }
+
+    withLookSuffix(animName: string) {
+        if (this.lookingUp) {
+            return animName + '-up';
+        } else if (this.lookingDown) {
+            return animName + '-down';
+        }
+        return animName;
     }
 
     render(context: CanvasRenderingContext2D) {
         // super.render(context);
 
-        const { animName, loop, facingDir } = this.getAnimationName();
+        const { animName, loop } = this.getAnimationName();
 
         Aseprite.drawAnimation({
             context,
-            image: "player",
+            image: 'player',
             animationName: animName,
             time: this.animCount,
             position: { x: this.midX, y: this.maxY },
             scale: PHYSICS_SCALE,
             anchorRatios: { x: 0.5, y: 1 },
-            // filter: filter,
-            flippedX: facingDir == FacingDir.Right,
+            flippedX: this.facingDir == FacingDir.Right,
             loop,
         });
     }
 
     static async preload() {
-        await Aseprite.loadImage({ name: imageName, basePath: "sprites" });
+        await Aseprite.loadImage({ name: imageName, basePath: 'sprites' });
     }
 }
