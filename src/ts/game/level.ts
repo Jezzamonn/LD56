@@ -1,21 +1,21 @@
 import { Point } from "../common";
-import { rng, TILE_SIZE, TILE_SIZE_PX } from "../constants";
+import { TILE_SIZE_PX } from "../constants";
+import { Images } from "../lib/images";
+import { Background } from "./background";
+import { FocusCamera } from "./camera";
 import { Entity } from "./entity/entity";
 import { Player } from "./entity/player";
-import { Sprite } from "./entity/sprite";
-import { Images } from "../lib/images";
-import { Camera, FocusCamera } from "./camera";
 import { Game } from "./game";
 import { LevelInfo } from "./levels";
-import { Tiles } from "./tile/tiles";
-import { Background } from "./background";
 import { BaseTile } from "./tile/base-layer";
 import { ObjectTile } from "./tile/object-layer";
+import { Tiles } from "./tile/tiles";
 
 // Contains everything in one level, including the tiles and the entities.
 export class Level {
     game: Game;
     entities: Entity[] = [];
+    entitiesToAdd: Entity[] = [];
     image: HTMLImageElement | undefined;
     levelInfo: LevelInfo
 
@@ -93,6 +93,10 @@ export class Level {
         this.spawnPlayer();
     }
 
+    addEntity(entity: Entity) {
+        this.entitiesToAdd.push(entity);
+    }
+
     spawnPlayer() {
         const player = new Player(this);
         player.midX = this.start.x;
@@ -106,6 +110,9 @@ export class Level {
         for (const entity of this.entities) {
             entity.update(dt);
         }
+
+        this.entities.push(...this.entitiesToAdd);
+        this.entitiesToAdd = [];
 
         for (let i = this.entities.length - 1; i >= 0; i--) {
             if (this.entities[i].done) {

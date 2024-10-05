@@ -1,14 +1,25 @@
 import { Dir, FacingDir, Point } from "../../common";
-import { FPS, JUMP_KEYS, LEFT_KEYS, physFromPx, PHYSICS_SCALE, RIGHT_KEYS } from "../../constants";
+import {
+    DOWN_KEYS,
+    FPS,
+    JUMP_KEYS,
+    LEFT_KEYS,
+    physFromPx,
+    PHYSICS_SCALE,
+    RIGHT_KEYS,
+    SHOOT_KEYS,
+    UP_KEYS,
+} from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
-import { NullKeys } from "../../lib/keys";
+import { NullKeys, RegularKeys } from "../../lib/keys";
 import { Level } from "../level";
 import { SFX } from "../sfx";
 import { ObjectTile } from "../tile/object-layer";
 import { PhysicTile } from "../tile/tiles";
+import { Bullet } from "./bullet";
 import { Entity } from "./entity";
 
-const imageName = 'player';
+const imageName = "player";
 
 // How long the player gets to jump after falling off a platform.
 // 0.1 seems a little too lenient, but whatever :)
@@ -16,14 +27,13 @@ const COYOTE_TIME_SECS = 0.1;
 const BUFFER_JUMP_TIME_SECS = 0.1;
 
 export class Player extends Entity {
-
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
     jumpSpeed = 3 * PHYSICS_SCALE * FPS;
     wallSlideSpeed = 1 * PHYSICS_SCALE * FPS;
     maxFallSpeed = 3 * PHYSICS_SCALE * FPS;
 
-    groundAccel = 0.25 * PHYSICS_SCALE * FPS * FPS / 2;
-    airAccel = 0.125 * PHYSICS_SCALE * FPS * FPS / 2;
+    groundAccel = (0.25 * PHYSICS_SCALE * FPS * FPS) / 2;
+    airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
 
     controlledByPlayer = true;
 
@@ -34,65 +44,16 @@ export class Player extends Entity {
 
     bufferedJumpCount = 0;
 
+    bulletCooldown = 0.2;
+    bulletCooldownCount = 0;
+
     constructor(level: Level) {
         super(level);
         // TODO: Set w and h
         this.w = physFromPx(6);
-        this.h = physFromPx(10);
+        this.h = physFromPx(16);
         // TODO: Tweak gravity? This was from Teeniest Seed.
         this.gravity = 0.13 * PHYSICS_SCALE * FPS * FPS;
-    }
-
-    getAnimationName() {
-        let animName = 'idle';
-        let loop = true;
-        let facingDir = this.facingDir;
-
-        // TODO: This logic will probably need to be tweaked for whatever character this game has.
-        if (!this.isStanding()) {
-            if (this.isAgainstLeftWall()) {
-                animName = 'wall-slide'
-                facingDir = FacingDir.Right;
-            }
-            else if (this.isAgainstRightWall()) {
-                animName = 'wall-slide'
-                facingDir = FacingDir.Left;
-            }
-            else {
-                animName = 'jump';
-                if (this.dy < -0.3 * this.jumpSpeed) {
-                    animName += '-up';
-                }
-                else if (this.dy > 0.3 * this.jumpSpeed) {
-                    animName += '-down';
-                }
-                else {
-                    animName += '-mid';
-                }
-            }
-        } else if (Math.abs(this.dx) > 0.01) {
-            animName = 'run';
-        }
-        return { animName, loop, facingDir }
-    }
-
-    render(context: CanvasRenderingContext2D) {
-        // super.render(context);
-
-        const {animName, loop, facingDir} = this.getAnimationName();
-
-        Aseprite.drawAnimation({
-            context,
-            image: "player",
-            animationName: animName,
-            time: this.animCount,
-            position: {x: this.midX, y: this.maxY},
-            scale: PHYSICS_SCALE,
-            anchorRatios: {x: 0.5, y: 1},
-            // filter: filter,
-            flippedX: facingDir == FacingDir.Left,
-            loop,
-        });
     }
 
     cameraFocus(): Point {
@@ -104,7 +65,7 @@ export class Player extends Entity {
 
     jump() {
         this.dy = -this.jumpSpeed;
-        SFX.play('jump');
+        SFX.play("jump");
         // Reset coyote time variables.
         this.onGroundCount = 0;
         this.onLeftWallCount = 0;
@@ -152,6 +113,9 @@ export class Player extends Entity {
         if (this.bufferedJumpCount > 0) {
             this.bufferedJumpCount -= dt;
         }
+        if (this.bulletCooldownCount > 0) {
+            this.bulletCooldownCount -= dt;
+        }
 
         if (this.isStanding()) {
             this.onGroundCount = COYOTE_TIME_SECS;
@@ -165,7 +129,9 @@ export class Player extends Entity {
 
         // TODO: Maybe checking what animation frame we're add and playing a sound effect (e.g. if it's a footstep frame.)
 
-        let keys = this.controlledByPlayer ? this.level.game.keys : new NullKeys();
+        let keys = this.controlledByPlayer
+            ? this.level.game.keys
+            : new NullKeys();
 
         if (keys.anyWasPressedThisFrame(JUMP_KEYS)) {
             this.bufferedJumpCount = BUFFER_JUMP_TIME_SECS;
@@ -174,14 +140,12 @@ export class Player extends Entity {
         if (this.bufferedJumpCount > 0) {
             if (this.onGroundCount > 0) {
                 this.jump();
-            }
-            else if (this.onLeftWallCount > 0) {
+            } else if (this.onLeftWallCount > 0) {
                 // Wall jump! To da right
                 this.dx = this.runSpeed;
                 this.facingDir = FacingDir.Right;
                 this.jump();
-            }
-            else if (this.onRightWallCount > 0) {
+            } else if (this.onRightWallCount > 0) {
                 this.dx = -this.runSpeed;
                 this.facingDir = FacingDir.Left;
                 this.jump();
@@ -193,12 +157,15 @@ export class Player extends Entity {
         const right = keys.anyIsPressed(RIGHT_KEYS);
         if (left && !right) {
             this.moveLeft(dt);
-        }
-        else if (right && !left) {
+        } else if (right && !left) {
             this.moveRight(dt);
-        }
-        else {
+        } else {
             this.dampX(dt);
+        }
+
+        // Fire a bullet. After moving so that the facing direction is updated.
+        if (keys.anyIsPressed(SHOOT_KEYS) && this.bulletCooldownCount <= 0) {
+            this.fireBullet(keys);
         }
 
         this.applyGravity(dt);
@@ -206,9 +173,32 @@ export class Player extends Entity {
         this.moveY(dt);
 
         // Checking for winning
-        if (this.isTouchingTile(this.level.tiles.objectLayer, ObjectTile.Goal)) {
+        if (
+            this.isTouchingTile(this.level.tiles.objectLayer, ObjectTile.Goal)
+        ) {
             this.level.win();
         }
+    }
+
+    fireBullet(keys: RegularKeys) {
+        const bullet = new Bullet(this.level);
+        // Should probably appear from a logical position.
+        bullet.midX = this.midX;
+        bullet.midY = this.midY;
+
+        if (keys.anyIsPressed(UP_KEYS)) {
+            bullet.setDirection({ x: 0, y: -1 });
+        } else if (keys.anyIsPressed(DOWN_KEYS)) {
+            bullet.setDirection({ x: 0, y: 1 });
+        } else {
+            bullet.setDirection({
+                x: this.facingDir == FacingDir.Right ? 1 : -1,
+                y: 0,
+            });
+        }
+        this.level.addEntity(bullet);
+
+        this.bulletCooldownCount = this.bulletCooldown;
     }
 
     applyGravity(dt: number): void {
@@ -217,8 +207,7 @@ export class Player extends Entity {
                 const diff = this.dy - this.wallSlideSpeed;
                 this.dy -= 0.5 * diff;
             }
-        }
-        else {
+        } else {
             if (this.dy > this.maxFallSpeed) {
                 const diff = this.dy - this.maxFallSpeed;
                 this.dy -= 0.5 * diff;
@@ -233,20 +222,74 @@ export class Player extends Entity {
 
     onDownCollision() {
         if (this.dy > 0.5 * this.jumpSpeed) {
-            SFX.play('land');
+            SFX.play("land");
         }
         super.onDownCollision();
     }
 
     isAgainstLeftWall() {
-        return this.isTouchingTile(this.level.tiles, [PhysicTile.Wall], { dir: Dir.Left, offset: { x: -1, y: 0 } });
+        return this.isTouchingTile(this.level.tiles, [PhysicTile.Wall], {
+            dir: Dir.Left,
+            offset: { x: -1, y: 0 },
+        });
     }
 
     isAgainstRightWall() {
-        return this.isTouchingTile(this.level.tiles, [PhysicTile.Wall], { dir: Dir.Right, offset: { x: 1, y: 0 } });
+        return this.isTouchingTile(this.level.tiles, [PhysicTile.Wall], {
+            dir: Dir.Right,
+            offset: { x: 1, y: 0 },
+        });
+    }
+
+    getAnimationName() {
+        let animName = "idle";
+        let loop = true;
+        let facingDir = this.facingDir;
+
+        // TODO: This logic will probably need to be tweaked for whatever character this game has.
+        if (!this.isStanding()) {
+            if (this.dy > 0 && this.isAgainstLeftWall()) {
+                animName = "wall-slide";
+                facingDir = FacingDir.Right;
+            } else if (this.dy > 0 && this.isAgainstRightWall()) {
+                animName = "wall-slide";
+                facingDir = FacingDir.Left;
+            } else {
+                animName = "jump";
+                if (this.dy < -0.3 * this.jumpSpeed) {
+                    animName += "-up";
+                } else if (this.dy > 0.3 * this.jumpSpeed) {
+                    animName += "-down";
+                } else {
+                    animName += "-mid";
+                }
+            }
+        } else if (Math.abs(this.dx) > 0.01) {
+            animName = "run";
+        }
+        return { animName, loop, facingDir };
+    }
+
+    render(context: CanvasRenderingContext2D) {
+        // super.render(context);
+
+        const { animName, loop, facingDir } = this.getAnimationName();
+
+        Aseprite.drawAnimation({
+            context,
+            image: "player",
+            animationName: animName,
+            time: this.animCount,
+            position: { x: this.midX, y: this.maxY },
+            scale: PHYSICS_SCALE,
+            anchorRatios: { x: 0.5, y: 1 },
+            // filter: filter,
+            flippedX: facingDir == FacingDir.Right,
+            loop,
+        });
     }
 
     static async preload() {
-        await Aseprite.loadImage({name: imageName, basePath: 'sprites'});
+        await Aseprite.loadImage({ name: imageName, basePath: "sprites" });
     }
 }

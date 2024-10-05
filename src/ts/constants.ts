@@ -15,14 +15,19 @@ export const GAME_HEIGHT = GAME_HEIGHT_PX * PHYSICS_SCALE;
 export const TILE_SIZE_PX = 16;
 export const TILE_SIZE = TILE_SIZE_PX * PHYSICS_SCALE;
 
-export const LEFT_KEYS = ['KeyA', 'ArrowLeft', 'TouchButtonLeft'];
-export const RIGHT_KEYS = ['KeyD', 'ArrowRight', 'TouchButtonRight'];
-export const JUMP_KEYS = ['KeyW', 'ArrowUp', 'TouchButtonJump'];
-// export const DOWN_KEYS = ['KeyS', 'ArrowDown'];
-export const PLANT_KEYS = ['KeyS', 'ArrowDown', 'TouchButtonPlant'];
-export const SELECT_KEYS = ['Space', 'Enter', 'AnyTouch'];
-export const TITLE_KEYS = ['Space', 'Enter', 'AnyTouch'];
-export const RESTART_KEYS = ['KeyR', 'TouchButtonRestart'];
+export const LEFT_KEYS = ['KeyA', 'ArrowLeft'];
+export const RIGHT_KEYS = ['KeyD', 'ArrowRight'];
+export const UP_KEYS = ['KeyW', 'ArrowUp'];
+export const DOWN_KEYS = ['KeyS', 'ArrowDown'];
+
+// TODO: Allow this to be configurable somehow.
+export const JUMP_KEYS = ['Space', 'KeyZ'];
+export const SHOOT_KEYS = ['KeyX'];
+export const INVENTORY_KEYS = ['ShiftLeft', 'ShiftRight'];
+
+export const SELECT_KEYS = ['Space', 'Enter'];
+export const TITLE_KEYS = ['Space', 'Enter'];
+export const RESTART_KEYS = ['KeyR'];
 
 export function physFromPx(x: number): number {
     return x * PHYSICS_SCALE;
