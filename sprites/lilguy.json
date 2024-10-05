@@ -43,6 +43,51 @@
     "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
     "sourceSize": { "w": 16, "h": 20 },
     "duration": 100
+   },
+   {
+    "filename": "lilguy (fire) 0.aseprite",
+    "frame": { "x": 18, "y": 43, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (fire) 1.aseprite",
+    "frame": { "x": 35, "y": 1, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (fire) 2.aseprite",
+    "frame": { "x": 35, "y": 22, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (fire) 3.aseprite",
+    "frame": { "x": 35, "y": 43, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "lilguy (fire) 4.aseprite",
+    "frame": { "x": 52, "y": 1, "w": 16, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 20 },
+    "sourceSize": { "w": 16, "h": 20 },
+    "duration": 100
    }
  ],
  "meta": {
@@ -50,7 +95,7 @@
   "version": "1.3.7-x64",
   "image": "lilguy.png",
   "format": "RGBA8888",
-  "size": { "w": 35, "h": 66 },
+  "size": { "w": 69, "h": 66 },
   "scale": "1",
   "frameTags": [
    { "name": "idle", "from": 0, "to": 0, "direction": "forward", "color": "#000000ff" },
@@ -59,7 +104,8 @@
    { "name": "fire-vert", "from": 4, "to": 4, "direction": "forward", "color": "#000000ff" }
   ],
   "layers": [
-   { "name": "normal", "opacity": 255, "blendMode": "normal" }
+   { "name": "normal", "opacity": 255, "blendMode": "normal" },
+   { "name": "fire", "opacity": 255, "blendMode": "normal" }
   ]
  }
 }

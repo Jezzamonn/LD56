@@ -38,21 +38,25 @@ export class Bullet extends Entity {
     onDownCollision(): void {
         super.onDownCollision();
         this.endBullet();
+        this.guy.maxY = this.maxY;
     }
 
     onLeftCollision(): void {
         super.onLeftCollision();
         this.endBullet();
+        this.guy.minX = this.minX;
     }
 
     onRightCollision(): void {
         super.onRightCollision();
         this.endBullet();
+        this.guy.maxX = this.maxX;
     }
 
     onUpCollision(): void {
         super.onUpCollision();
         this.endBullet();
+        this.guy.minY = this.minY;
     }
 
     endBullet() {

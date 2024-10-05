@@ -39,6 +39,9 @@ export class Guy extends RunningEntity {
 
     player: Player | undefined;
 
+    type = rng() < 0.5 ? 'normal' : 'fire';
+    typeSet = new Set([this.type]);
+
     update(dt: number): void {
         this.animCount += dt;
 
@@ -181,6 +184,7 @@ export class Guy extends RunningEntity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.facingDir === FacingDir.Right,
             loop: true,
+            layers: this.typeSet,
         });
     }
 

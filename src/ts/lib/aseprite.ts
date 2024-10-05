@@ -388,7 +388,7 @@ export function drawSprite({
     flippedY?: boolean;
     filter?: string;
     colorMap?: ColorMap;
-    layers?: string[];
+    layers?: Set<string>;
 }): boolean {
     if (typeof image === "string") {
         image = images[image];
@@ -445,30 +445,50 @@ export function drawSprite({
         adjustedAnchorRatios.y = 1 - adjustedAnchorRatios.y;
     }
 
-    const numFrames = image.frames.length / image.layers!.length;
-    const layersSet = new Set(layers);
-    const imageLayers = image.layers!;
-    for (let l = 0; l < imageLayers.length; l++) {
-        const layer = imageLayers[l];
-        if (layersSet.size === 0 || layersSet.has(layer.name)) {
-            const imageFrame = image.frames[frame + l * numFrames];
-            const sourceRect = imageFrame.frame;
-            const destW = scale * sourceRect.w;
-            const destH = scale * sourceRect.h;
+    const imageLayers = image.layers;
+    if (imageLayers == null) {
+        const imageFrame = image.frames[frame];
+        const sourceRect = imageFrame.frame;
+        const destW = scale * sourceRect.w;
+        const destH = scale * sourceRect.h;
 
-            context.drawImage(
-                image.image!,
-                sourceRect.x,
-                sourceRect.y,
-                sourceRect.w,
-                sourceRect.h,
-                -adjustedAnchorRatios.x * destW,
-                -adjustedAnchorRatios.y * destH,
-                destW,
-                destH
-            );
+        context.drawImage(
+            image.image!,
+            sourceRect.x,
+            sourceRect.y,
+            sourceRect.w,
+            sourceRect.h,
+            -adjustedAnchorRatios.x * destW,
+            -adjustedAnchorRatios.y * destH,
+            destW,
+            destH
+        );
+    }
+    else {
+        const numFrames = image.frames.length / imageLayers.length;
+        for (let l = 0; l < imageLayers.length; l++) {
+            const layer = imageLayers[l];
+            if (layers == null || layers.has(layer.name)) {
+                const imageFrame = image.frames[frame + l * numFrames];
+                const sourceRect = imageFrame.frame;
+                const destW = scale * sourceRect.w;
+                const destH = scale * sourceRect.h;
+    
+                context.drawImage(
+                    image.image!,
+                    sourceRect.x,
+                    sourceRect.y,
+                    sourceRect.w,
+                    sourceRect.h,
+                    -adjustedAnchorRatios.x * destW,
+                    -adjustedAnchorRatios.y * destH,
+                    destW,
+                    destH
+                );
+            }
         }
     }
+
 
     context.restore();
 
@@ -525,7 +545,7 @@ export function drawAnimation({
     flippedY?: boolean;
     filter?: string;
     loop?: boolean;
-    layers?: string[];
+    layers?: Set<string>;
 }): boolean {
     if (typeof image === "string") {
         image = images[image];
