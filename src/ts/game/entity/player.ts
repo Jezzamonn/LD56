@@ -173,11 +173,18 @@ export class Player extends RunningEntity {
     }
 
     fireBullet() {
-        // Can't fire without a guy!
-        if (this.guys.length === 0) {
+        let guy: Guy | undefined = undefined;
+        for (let g = 0; g < this.guys.length; g++) {
+            if (!this.guys[g].done && this.guys[g].isCloseEnoughToShoot()) {
+                guy = this.guys[g];
+                this.guys.splice(g, 1);
+                break;
+            }
+        }
+        if (!guy) {
+            // Can't fire without a guy!
             return;
         }
-        const guy = this.guys.shift()!;
         guy.done = true;
 
         const bullet = new Bullet(this.level);

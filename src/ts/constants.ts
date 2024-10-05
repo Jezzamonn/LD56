@@ -12,7 +12,7 @@ export const GAME_HEIGHT_PX = 150;
 export const GAME_WIDTH = GAME_WIDTH_PX * PHYSICS_SCALE;
 export const GAME_HEIGHT = GAME_HEIGHT_PX * PHYSICS_SCALE;
 
-export const TILE_SIZE_PX = 16;
+export const TILE_SIZE_PX = 12;
 export const TILE_SIZE = TILE_SIZE_PX * PHYSICS_SCALE;
 
 export const LEFT_KEYS = ['KeyA', 'ArrowLeft'];

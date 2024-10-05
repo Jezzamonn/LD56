@@ -155,6 +155,12 @@ export class Guy extends RunningEntity {
         return yDiff > 1.5 * TILE_SIZE || xDiff > 8 * TILE_SIZE;
     }
 
+    isCloseEnoughToShoot() {
+        const yDiff = Math.abs(this.maxY - this.player!.maxY);
+        const xDiff = Math.abs(this.midX - this.player!.midX);
+        return xDiff < TILE_SIZE && yDiff < TILE_SIZE;
+    }
+
     smallJump() {
         this.dy = -this.smallJumpSpeed;
     }

@@ -1,10 +1,10 @@
-import { Dir } from "../../common";
-import { FPS, physFromPx, PHYSICS_SCALE } from "../../constants";
+import { Dir, FacingDir } from "../../common";
+import { FPS, physFromPx, PHYSICS_SCALE, rng } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
+import { lerp } from "../../lib/util";
 import { Creature } from "./enemies/creature";
 import { Entity } from "./entity";
 import { Guy } from "./guy";
-import { Player } from "./player";
 
 const SPEED = 6 * PHYSICS_SCALE * FPS;
 
@@ -45,12 +45,16 @@ export class Bullet extends Entity {
         super.onLeftCollision();
         this.endBullet();
         this.guy.minX = this.minX;
+        this.guy.dx = lerp(0.1 * PHYSICS_SCALE * FPS, 1 * PHYSICS_SCALE * FPS, rng());
+        this.guy.facingDir = FacingDir.Right;
     }
 
     onRightCollision(): void {
         super.onRightCollision();
         this.endBullet();
         this.guy.maxX = this.maxX;
+        this.guy.dx = -lerp(0.1 * PHYSICS_SCALE * FPS, 1 * PHYSICS_SCALE * FPS, rng());
+        this.guy.facingDir = FacingDir.Left;
     }
 
     onUpCollision(): void {
@@ -60,6 +64,9 @@ export class Bullet extends Entity {
     }
 
     endBullet() {
+        if (this.done) {
+            return; // Can't end twice.
+        }
         this.level.addEntity(this.guy);
         this.guy.done = false;
         this.guy.midX = this.midX;
@@ -68,26 +75,38 @@ export class Bullet extends Entity {
         this.guy.dy = 0;
         this.done = true;
         // Add back to player I guess
-        const player = this.level.getEntity(Player)!
-        player.guys.push(this.guy);
+
+        if (this.guy.type === 'unique') {
+            const player = this.level.player;
+            player.guys.push(this.guy);
+        }
+        else {
+            this.guy.player = undefined;
+        }
     }
 
     update(dt: number) {
         super.update(dt);
 
-        // Check if we've hit an enemy
+        this.checkEnemyCollision();
+
+        if (this.animCount > this.lifetime) {
+            this.endBullet();
+        }
+    }
+
+    checkEnemyCollision() {
+        if (this.done) {
+            return;
+        }
         for (const entity of this.level.entities) {
             if (entity instanceof Creature) {
                 if (this.isTouchingEntity(entity)) {
-                    entity.hurt(this.dir)
+                    entity.hurt(this.dir);
                     this.endBullet();
                     return;
                 }
             }
-        }
-
-        if (this.animCount > this.lifetime) {
-            this.endBullet();
         }
     }
 

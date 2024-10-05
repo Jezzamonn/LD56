@@ -72,8 +72,7 @@ export class Level {
                     this.tiles.baseLayer.setTile({ x, y }, BaseTile.Background, { allowGrow: false });
                 }
                 else if (color === 'ffff00') {
-                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Goal, { allowGrow: false });
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
+                    // Spawn the lil guy.
                 }
                 else if (color === 'ff0000') {
                     this.start = basePos;
