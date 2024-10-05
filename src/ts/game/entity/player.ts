@@ -129,7 +129,6 @@ export class Player extends RunningEntity {
                 this.facingDir = FacingDir.Left;
                 this.jump();
             }
-            // Can't jump, sadly.
         }
 
         const left = keys.anyIsPressed(LEFT_KEYS);
@@ -247,9 +246,9 @@ export class Player extends RunningEntity {
 
         if (!this.isStanding()) {
             if (this.dy > 0 && this.isAgainstLeftWall()) {
-                animName = 'wall-slide'
+                animName = this.withLookSuffix('wall-slide');
             } else if (this.dy > 0 && this.isAgainstRightWall()) {
-                animName = 'wall-slide';
+                animName = this.withLookSuffix('wall-slide');
             } else {
                 animName = this.withLookSuffix('jump');
             }
