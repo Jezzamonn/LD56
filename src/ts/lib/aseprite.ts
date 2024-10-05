@@ -58,7 +58,15 @@ interface ImageMetadata {
     animations: {
         [key: string]: AnimationMetadata;
     };
+    layers?: LayerMetadata[];
     loadPromise?: Promise<ImageMetadata>;
+}
+
+interface LayerMetadata {
+    name: string;
+    // These exist but aren't supported.
+    opacity: number;
+    blendMode: string;
 }
 
 export type ColorMap = { [orig: string]: string };
@@ -193,6 +201,7 @@ export function loadImage({
             }
             images[name].animations = animations;
             images[name].frames = response.frames;
+            images[name].layers = response.meta.layers;
             images[name].jsonLoaded = true;
             images[name].loaded = images[name].imageLoaded;
         });
@@ -235,6 +244,7 @@ function applyEffect(
         loaded: false,
         animations: baseImageMetadata.animations,
         frames: baseImageMetadata.frames,
+        layers: baseImageMetadata.layers,
     };
 
     const canvas = effectFn(baseImageMetadata.image);
@@ -366,6 +376,7 @@ export function drawSprite({
     flippedY = false,
     filter,
     colorMap,
+    layers,
 }: {
     context: CanvasRenderingContext2D;
     image: string | ImageMetadata;
@@ -377,6 +388,7 @@ export function drawSprite({
     flippedY?: boolean;
     filter?: string;
     colorMap?: ColorMap;
+    layers?: string[];
 }): boolean {
     if (typeof image === "string") {
         image = images[image];
@@ -416,10 +428,6 @@ export function drawSprite({
         return false;
     }
 
-    const sourceRect = image.frames[frame].frame;
-    const destW = scale * sourceRect.w;
-    const destH = scale * sourceRect.h;
-
     context.save();
     context.translate(Math.round(position.x), Math.round(position.y));
 
@@ -437,17 +445,30 @@ export function drawSprite({
         adjustedAnchorRatios.y = 1 - adjustedAnchorRatios.y;
     }
 
-    context.drawImage(
-        image.image!,
-        sourceRect.x,
-        sourceRect.y,
-        sourceRect.w,
-        sourceRect.h,
-        -adjustedAnchorRatios.x * destW,
-        -adjustedAnchorRatios.y * destH,
-        destW,
-        destH
-    );
+    const numFrames = image.frames.length / image.layers!.length;
+    const layersSet = new Set(layers);
+    const imageLayers = image.layers!;
+    for (let l = 0; l < imageLayers.length; l++) {
+        const layer = imageLayers[l];
+        if (layersSet.size === 0 || layersSet.has(layer.name)) {
+            const imageFrame = image.frames[frame + l * numFrames];
+            const sourceRect = imageFrame.frame;
+            const destW = scale * sourceRect.w;
+            const destH = scale * sourceRect.h;
+
+            context.drawImage(
+                image.image!,
+                sourceRect.x,
+                sourceRect.y,
+                sourceRect.w,
+                sourceRect.h,
+                -adjustedAnchorRatios.x * destW,
+                -adjustedAnchorRatios.y * destH,
+                destW,
+                destH
+            );
+        }
+    }
 
     context.restore();
 
@@ -490,7 +511,8 @@ export function drawAnimation({
     flippedX = false,
     flippedY = false,
     filter = "",
-    loop = true
+    loop = true,
+    layers,
 }: {
     context: CanvasRenderingContext2D;
     image: string | ImageMetadata;
@@ -503,6 +525,7 @@ export function drawAnimation({
     flippedY?: boolean;
     filter?: string;
     loop?: boolean;
+    layers?: string[];
 }): boolean {
     if (typeof image === "string") {
         image = images[image];
@@ -524,6 +547,7 @@ export function drawAnimation({
         flippedX,
         flippedY,
         filter,
+        layers,
     });
 }
 
