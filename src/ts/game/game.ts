@@ -1,19 +1,25 @@
-import { GAME_HEIGHT_PX, GAME_WIDTH_PX, PHYSICS_SCALE, RESTART_KEYS, TIME_STEP } from "../constants";
-import { Aseprite } from "../lib/aseprite";
-import { ComboKeys, KeyboardKeys, NullKeys, RegularKeys } from "../lib/keys";
-import { Sounds } from "../lib/sounds";
-import { Background } from "./background";
-import { centerCanvas } from "./camera";
-import { Creature } from "./entity/enemies/creature";
-import { Guy } from "./entity/guy";
-import { Player } from "./entity/player";
-import { Level } from "./level";
-import { Levels, LEVELS } from "./levels";
-import { SFX } from "./sfx";
-import { Tiles } from "./tile/tiles";
+import {
+    DEBUG,
+    GAME_HEIGHT_PX,
+    GAME_WIDTH_PX,
+    PHYSICS_SCALE,
+    RESTART_KEYS,
+    TIME_STEP,
+} from '../constants';
+import { Aseprite } from '../lib/aseprite';
+import { ComboKeys, KeyboardKeys, NullKeys, RegularKeys } from '../lib/keys';
+import { Sounds } from '../lib/sounds';
+import { Background } from './background';
+import { centerCanvas } from './camera';
+import { Creature } from './entity/enemies/creature';
+import { Guy } from './entity/guy';
+import { Player } from './entity/player';
+import { Level } from './level';
+import { Levels, LEVELS } from './levels';
+import { SFX } from './sfx';
+import { Tiles } from './tile/tiles';
 
 export class Game {
-
     canvas: HTMLCanvasElement;
     context: CanvasRenderingContext2D;
 
@@ -29,9 +35,12 @@ export class Game {
     nullKeys = new NullKeys();
 
     constructor(canvasSelector: string) {
-        const canvas = document.querySelector<HTMLCanvasElement>(canvasSelector);
+        const canvas =
+            document.querySelector<HTMLCanvasElement>(canvasSelector);
         if (!canvas) {
-            throw new Error(`Could not find canvas with selector ${canvasSelector}`);
+            throw new Error(
+                `Could not find canvas with selector ${canvasSelector}`
+            );
         }
         const context = canvas.getContext('2d')!;
 
@@ -58,6 +67,10 @@ export class Game {
         this.doAnimationLoop();
 
         this.startLevel(0);
+
+        if (DEBUG) {
+            this.loadPlayerPosition();
+        }
     }
 
     nextLevel() {
@@ -113,15 +126,20 @@ export class Game {
             // Mute
             Sounds.toggleMute();
         }
-        // Debug:
-        if (this.keys.wasPressedThisFrame('Comma')) {
-            this.prevLevel();
-        }
-        if (this.keys.wasPressedThisFrame('Period')) {
-            this.nextLevel();
-        }
-        if (this.keys.anyWasPressedThisFrame(RESTART_KEYS)) {
-            this.startLevel(this.levelIndex);
+        if (DEBUG) {
+            if (this.keys.wasPressedThisFrame('Comma')) {
+                this.prevLevel();
+            }
+            if (this.keys.wasPressedThisFrame('Period')) {
+                this.nextLevel();
+            }
+            // Ignore if any control keys are pressed.
+            if (
+                this.keys.anyWasPressedThisFrame(RESTART_KEYS) &&
+                !this.keys.anyIsPressed(['ControlLeft', 'ControlRight', 'MetaLeft', 'MetaRight'])
+            ) {
+                this.startLevel(this.levelIndex);
+            }
         }
     }
 
@@ -132,9 +150,40 @@ export class Game {
             this.curLevel?.update(dt);
 
             this.keys.resetFrame();
-        }
-        catch (e) {
+
+            if (DEBUG) {
+                // To make play testing quicker, save the last position of the player.
+                this.savePlayerPosition();
+            }
+        } catch (e) {
             console.error(e);
+        }
+    }
+
+    savePlayerPosition() {
+        const localStoragePrefix = 'ihaveputthecreatureintomygun';
+        const player = this.curLevel?.player;
+        if (player) {
+            const key = `${localStoragePrefix}-last-player-position`;
+            localStorage.setItem(
+                key,
+                JSON.stringify({ x: player.midX, y: player.maxY })
+            );
+        }
+    }
+
+    loadPlayerPosition() {
+        const localStoragePrefix = 'ihaveputthecreatureintomygun';
+        const key = `${localStoragePrefix}-last-player-position`;
+        const json = localStorage.getItem(key);
+        if (!json) {
+            return;
+        }
+        const { x, y } = JSON.parse(json);
+        const player = this.curLevel?.player;
+        if (player) {
+            player.midX = x;
+            player.maxY = y;
         }
     }
 
@@ -149,8 +198,7 @@ export class Game {
 
         try {
             this.curLevel?.render(this.context);
-        }
-        catch (e) {
+        } catch (e) {
             console.error(e);
         }
     }

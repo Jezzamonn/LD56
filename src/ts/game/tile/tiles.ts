@@ -1,6 +1,5 @@
 import { Point } from "../../common";
-import { PHYSICS_SCALE, rng, TILE_SIZE, TILE_SIZE_PX } from "../../constants";
-import { Aseprite, images } from "../../lib/aseprite";
+import { TILE_SIZE } from "../../constants";
 import { Images } from "../../lib/images";
 import { BaseLayer, BaseTile } from "./base-layer";
 import { ObjectLayer, ObjectTile } from "./object-layer";
@@ -57,13 +56,15 @@ export class Tiles implements TileSource<PhysicTile> {
 
     getTile(p: Point): PhysicTile {
         const baseTile = this.baseLayer.getTile(p);
-        if (baseTile == BaseTile.Wall) {
+        if (baseTile === BaseTile.Wall) {
             return PhysicTile.Wall;
         }
 
         const objectTile = this.objectLayer.getTile(p);
-        if (objectTile == ObjectTile.Platform) {
+        if (objectTile === ObjectTile.Platform) {
             return PhysicTile.OneWayPlatform;
+        } else if (objectTile === ObjectTile.Destroyable) {
+            return PhysicTile.Wall;
         }
 
         return PhysicTile.Empty;
@@ -75,5 +76,4 @@ export class Tiles implements TileSource<PhysicTile> {
             y: Math.floor(p.y / TILE_SIZE),
         });
     }
-
 }

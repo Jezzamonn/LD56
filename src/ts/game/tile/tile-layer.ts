@@ -1,9 +1,7 @@
-import { Point } from "../../common";
-import { PHYSICS_SCALE, rng, TILE_SIZE, TILE_SIZE_PX } from "../../constants";
-import { Aseprite, images } from "../../lib/aseprite";
-import { Images } from "../../lib/images";
-import { ObjectTile } from "./object-layer";
-import { TileSource } from "./tiles";
+import { Point } from '../../common';
+import { TILE_SIZE, TILE_SIZE_PX } from '../../constants';
+import { Images } from '../../lib/images';
+import { TileSource } from './tiles';
 
 /**
  * 2D array of tiles.
@@ -41,7 +39,7 @@ export class TileLayer<T extends number> implements TileSource<T> {
 
     render(context: CanvasRenderingContext2D) {
         if (!this.image) {
-            const imageInfo = Images.images["tiles"];
+            const imageInfo = Images.images['tiles'];
             if (!imageInfo.loaded) {
                 return;
             }
@@ -67,19 +65,13 @@ export class TileLayer<T extends number> implements TileSource<T> {
         }
     }
 
-    renderTile(
-        context: CanvasRenderingContext2D,
-        pos: Point,
-    ) {
+    renderTile(context: CanvasRenderingContext2D, pos: Point) {
         // Logic handled per layer.
     }
 
     drawTile(
         context: CanvasRenderingContext2D,
-        {
-            tilePos,
-            renderPos,
-        }: { tilePos: Point; renderPos: Point }
+        { tilePos, renderPos }: { tilePos: Point; renderPos: Point }
     ) {
         // Image must be loaded when this is called.
         context.drawImage(
@@ -92,7 +84,7 @@ export class TileLayer<T extends number> implements TileSource<T> {
             renderPos.y,
             // +1 is a kludge to avoid gaps between tiles.
             TILE_SIZE + 1,
-            TILE_SIZE + 1,
+            TILE_SIZE + 1
         );
     }
 
@@ -121,16 +113,16 @@ export class TileLayer<T extends number> implements TileSource<T> {
         );
     }
 
-    setTile(p: Point, tile: T, {allowGrow = true} = {}) {
+    setTile(p: Point, tile: T, { allowGrow = true } = {}) {
         // If out of bounds, extend the board!
         let y = p.y;
         while (allowGrow && y + this.y < 1) {
-            this.tiles.unshift(this.tiles[0].slice())
+            this.tiles.unshift(this.tiles[0].slice());
             this.y++;
             this.h++;
         }
         while (allowGrow && y + this.y >= this.h - 1) {
-            this.tiles.push(this.tiles[this.h - 1].slice())
+            this.tiles.push(this.tiles[this.h - 1].slice());
             this.h++;
         }
 
@@ -150,18 +142,64 @@ export class TileLayer<T extends number> implements TileSource<T> {
         }
 
         // Check if we're out of bounds, for when allowGrow is false.
-        if (p.x + this.x < 0 || p.y + this.y < 0 || p.x + this.x >= this.w || p.y + this.y >= this.h) {
+        if (
+            p.x + this.x < 0 ||
+            p.y + this.y < 0 ||
+            p.x + this.x >= this.w ||
+            p.y + this.y >= this.h
+        ) {
             throw new Error(`Tile out of bounds: ${p.x}, ${p.y}`);
         }
 
         this.tiles[p.y + this.y][p.x + this.x] = tile;
     }
 
-    setTileAtCoord(p: Point, tile: T, {allowGrow = true} = {}) {
-        this.setTile({
-            x: Math.floor(p.x / TILE_SIZE),
-            y: Math.floor(p.y / TILE_SIZE),
-        }, tile, {allowGrow});
+    setTileAtCoord(p: Point, tile: T, { allowGrow = true } = {}) {
+        this.setTile(
+            {
+                x: Math.floor(p.x / TILE_SIZE),
+                y: Math.floor(p.y / TILE_SIZE),
+            },
+            tile,
+            { allowGrow }
+        );
+    }
+
+    floodFillTile(p: Point, oldTile: T, newTile: T) {
+        const toVisit = [p];
+        const visited = new Set<string>();
+
+        while (toVisit.length > 0) {
+            const current = toVisit.pop()!;
+            // Don't consider tiles outside the bounds, otherwise this will be an infinite loop.
+            if (!this.pointIsInBounds(current)) {
+                continue;
+            }
+            const key = `${current.x},${current.y}`;
+            if (visited.has(key)) {
+                continue;
+            }
+            visited.add(key);
+
+            if (this.getTile(current) === oldTile) {
+                this.setTile(current, newTile, { allowGrow: false });
+                toVisit.push({ x: current.x + 1, y: current.y });
+                toVisit.push({ x: current.x - 1, y: current.y });
+                toVisit.push({ x: current.x, y: current.y + 1 });
+                toVisit.push({ x: current.x, y: current.y - 1 });
+            }
+        }
+    }
+
+    floodFillTileAtCoord(p: Point, oldTile: T, newTile: T) {
+        this.floodFillTile(
+            {
+                x: Math.floor(p.x / TILE_SIZE),
+                y: Math.floor(p.y / TILE_SIZE),
+            },
+            oldTile,
+            newTile
+        );
     }
 
     getTile(p: Point): T {
@@ -175,6 +213,15 @@ export class TileLayer<T extends number> implements TileSource<T> {
             x: Math.floor(p.x / TILE_SIZE),
             y: Math.floor(p.y / TILE_SIZE),
         });
+    }
+
+    pointIsInBounds(point: Point) {
+        return (
+            point.x >= this.minX &&
+            point.x <= this.maxX &&
+            point.y >= this.minY &&
+            point.y <= this.maxY
+        );
     }
 
     get minX() {

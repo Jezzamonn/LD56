@@ -13,22 +13,13 @@ export class BaseLayer extends TileLayer<BaseTile> {
 
     constructor(w: number, h: number) {
         super(w, h);
-
-        // // Add a floor and some walls.
-        // for (let y = 0; y < this.h; y++) {
-        //     for (let x = 0; x < this.w; x++) {
-        //         this.tiles[y][x] = y == (this.h - 1) ? BaseTile.Wall : BaseTile.Empty;
-        //     }
-        //     this.tiles[y][0] = BaseTile.Wall;
-        //     this.tiles[y][this.w - 1] = BaseTile.Wall;
-        // }
     }
 
     fillInUnknownTiles() {
         for (let y = this.minY; y <= this.maxY; y++) {
             for (let x = this.minX; x <= this.maxX; x++) {
                 if (this.getTile({x, y}) == BaseTile.Unknown) {
-                    console.log('filling in unknown tile', x, y)
+                    // console.log('filling in unknown tile', x, y)
                     // Unknown tiles are filled based on the tile to the left and right.
                     const horizontalTiles = [
                         this.getTile({ x: x - 1, y }),

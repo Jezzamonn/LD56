@@ -1,7 +1,8 @@
-import { Dir, FacingDir } from "../../common";
+import { Dir, FacingDir, Point } from "../../common";
 import { FPS, physFromPx, PHYSICS_SCALE, rng } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
 import { lerp } from "../../lib/util";
+import { ObjectTile } from "../tile/object-layer";
 import { Creature } from "./enemies/creature";
 import { Entity } from "./entity";
 import { Guy } from "./guy";
@@ -39,6 +40,15 @@ export class Bullet extends Entity {
         super.onDownCollision();
         this.endBullet();
         this.guy.maxY = this.maxY;
+        this.tryDestoryTile({ x: this.midX, y: this.maxY + 1 });
+    }
+
+    onUpCollision(): void {
+        super.onUpCollision();
+        this.endBullet();
+        this.guy.minY = this.minY;
+
+        this.tryDestoryTile({ x: this.midX, y: this.minY - 1 });
     }
 
     onLeftCollision(): void {
@@ -47,6 +57,8 @@ export class Bullet extends Entity {
         this.guy.minX = this.minX;
         this.guy.dx = lerp(0.1 * PHYSICS_SCALE * FPS, 1 * PHYSICS_SCALE * FPS, rng());
         this.guy.facingDir = FacingDir.Right;
+
+        this.tryDestoryTile({ x: this.minX - 1, y: this.midY });
     }
 
     onRightCollision(): void {
@@ -55,34 +67,31 @@ export class Bullet extends Entity {
         this.guy.maxX = this.maxX;
         this.guy.dx = -lerp(0.1 * PHYSICS_SCALE * FPS, 1 * PHYSICS_SCALE * FPS, rng());
         this.guy.facingDir = FacingDir.Left;
+
+        this.tryDestoryTile({ x: this.maxX + 1, y: this.midY });
     }
 
-    onUpCollision(): void {
-        super.onUpCollision();
-        this.endBullet();
-        this.guy.minY = this.minY;
+    tryDestoryTile(point: Point) {
+        const tile = this.level.tiles.objectLayer.getTileAtCoord(point);
+        if (tile === ObjectTile.Destroyable) {
+            this.level.tiles.objectLayer.floodFillTileAtCoord(point, ObjectTile.Destroyable, ObjectTile.Empty);
+        }
     }
 
     endBullet() {
         if (this.done) {
             return; // Can't end twice.
         }
-        this.level.addEntity(this.guy);
-        this.guy.done = false;
         this.guy.midX = this.midX;
         this.guy.midY = this.midY;
         this.guy.dx = 0;
         this.guy.dy = 0;
-        this.done = true;
-        // Add back to player I guess
+        this.guy.maybeStopFollowingPlayer();
 
-        if (this.guy.type === 'unique') {
-            const player = this.level.player;
-            player.guys.push(this.guy);
-        }
-        else {
-            this.guy.player = undefined;
-        }
+        this.guy.done = false;
+        this.level.addEntity(this.guy);
+
+        this.done = true;
     }
 
     update(dt: number) {

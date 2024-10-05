@@ -39,12 +39,14 @@ export class Player extends RunningEntity {
 
     // Used to track Coyote Time.
     onGroundCount = 0;
-    onLeftWallCount = 0;
-    onRightWallCount = 0;
+    // onLeftWallCount = 0;
+    // onRightWallCount = 0;
 
-    bufferedJumpCount = 0;
+    // bufferedJumpCount = 0;
 
-    bulletCooldown = 0.2;
+    releasedJumpKeyInAir = false;
+
+    bulletCooldown = 0.15;
     bulletCooldownCount = 0;
 
     w = physFromPx(6);
@@ -53,7 +55,10 @@ export class Player extends RunningEntity {
     lookingUp = false;
     lookingDown = false;
 
-    guys: Guy[] = [];
+    availableGuys: Guy[] = [];
+    availableGuysSet = new Set<Guy>();
+    knownGuys: Guy[] = [];
+    knownGuysSet = new Set<Guy>();
 
     cameraFocus(): Point {
         // TODO: This made people dizzy, should adjust it / change the speed the camera moves.
@@ -67,9 +72,9 @@ export class Player extends RunningEntity {
         SFX.play('jump');
         // Reset coyote time variables.
         this.onGroundCount = 0;
-        this.onLeftWallCount = 0;
-        this.onRightWallCount = 0;
-        this.bufferedJumpCount = 0;
+        // this.onLeftWallCount = 0;
+        // this.onRightWallCount = 0;
+        // this.bufferedJumpCount = 0;
     }
 
     update(dt: number) {
@@ -78,15 +83,15 @@ export class Player extends RunningEntity {
         if (this.onGroundCount > 0) {
             this.onGroundCount -= dt;
         }
-        if (this.onLeftWallCount > 0) {
-            this.onLeftWallCount -= dt;
-        }
-        if (this.onRightWallCount > 0) {
-            this.onRightWallCount -= dt;
-        }
-        if (this.bufferedJumpCount > 0) {
-            this.bufferedJumpCount -= dt;
-        }
+        // if (this.onLeftWallCount > 0) {
+        //     this.onLeftWallCount -= dt;
+        // }
+        // if (this.onRightWallCount > 0) {
+        //     this.onRightWallCount -= dt;
+        // }
+        // if (this.bufferedJumpCount > 0) {
+        //     this.bufferedJumpCount -= dt;
+        // }
         if (this.bulletCooldownCount > 0) {
             this.bulletCooldownCount -= dt;
         }
@@ -94,12 +99,12 @@ export class Player extends RunningEntity {
         if (this.isStanding()) {
             this.onGroundCount = COYOTE_TIME_SECS;
         }
-        if (this.isAgainstLeftWall()) {
-            this.onLeftWallCount = COYOTE_TIME_SECS;
-        }
-        if (this.isAgainstRightWall()) {
-            this.onRightWallCount = COYOTE_TIME_SECS;
-        }
+        // if (this.isAgainstLeftWall()) {
+        //     this.onLeftWallCount = COYOTE_TIME_SECS;
+        // }
+        // if (this.isAgainstRightWall()) {
+        //     this.onRightWallCount = COYOTE_TIME_SECS;
+        // }
 
         // TODO: Maybe checking what animation frame we're add and playing a sound effect (e.g. if it's a footstep frame.)
 
@@ -112,25 +117,22 @@ export class Player extends RunningEntity {
         this.lookingUp = upPressed && !downPressed;
         this.lookingDown = downPressed && !upPressed;
 
-        if (keys.anyWasPressedThisFrame(JUMP_KEYS)) {
-            this.bufferedJumpCount = BUFFER_JUMP_TIME_SECS;
+        // Need to release the jump key before jumping again.
+        if (this.onGroundCount > 0) {
+            this.releasedJumpKeyInAir = false;
+        }
+        else if (!keys.anyIsPressed(JUMP_KEYS)) {
+            this.releasedJumpKeyInAir = true;
         }
 
-        if (this.bufferedJumpCount > 0) {
-            if (this.onGroundCount > 0) {
-                this.jump();
+        if (keys.anyWasPressedThisFrame(JUMP_KEYS) && this.onGroundCount > 0) {
+            this.jump();
+        }
+        else if (keys.anyIsPressed(JUMP_KEYS) && this.releasedJumpKeyInAir) {
+            // Use 'bullets' as double jumps.
+            if (this.bulletCooldownCount <= 0) {
+                this.bulletDoubleJump();
             }
-            // Disable wall jumps for now.
-            // else if (this.onLeftWallCount > 0) {
-            //     // Wall jump! To da right
-            //     this.dx = this.runSpeed;
-            //     this.facingDir = FacingDir.Right;
-            //     this.jump();
-            // } else if (this.onRightWallCount > 0) {
-            //     this.dx = -this.runSpeed;
-            //     this.facingDir = FacingDir.Left;
-            //     this.jump();
-            // }
         }
 
         const left = keys.anyIsPressed(LEFT_KEYS);
@@ -156,6 +158,9 @@ export class Player extends RunningEntity {
         if (keys.wasPressedThisFrame('KeyG')) {
             this.spawnGuy();
         }
+        if (keys.wasPressedThisFrame('KeyB')) {
+            this.bringBackAllGuys();
+        }
 
         // Checking for winning
         if (
@@ -169,24 +174,42 @@ export class Player extends RunningEntity {
         const guy = new Guy(this.level);
         guy.midX = this.midX;
         guy.maxY = this.minY;
-        guy.type = 'unique';//rng() < 0.5 ? 'normal' : 'fire'
+        guy.type = this.availableGuys.length == 0 ? 'unique' : 'normal';
         this.level.addEntity(guy);
-        this.guys.push(guy);
+    }
+
+    bringBackAllGuys() {
+        for (let guy of this.knownGuys) {
+            guy.done = false;
+            guy.exhausted = false;
+            guy.midX = this.midX;
+            guy.maxY = this.maxY;
+            guy.dx = 0;
+            guy.dy = 0;
+            this.level.addEntity(guy);
+        }
+        this.availableGuys = [...this.knownGuys];
+        this.availableGuysSet = new Set(this.knownGuys);
+    }
+
+    addGuy(guy: Guy) {
+        if (!this.availableGuysSet.has(guy)) {
+            this.availableGuysSet.add(guy);
+            this.availableGuys.push(guy);
+        }
+        if (!this.knownGuysSet.has(guy)) {
+            this.knownGuysSet.add(guy);
+            this.knownGuys.push(guy);
+        }
     }
 
     fireBullet() {
-        let guy: Guy | undefined = undefined;
-        for (let g = 0; g < this.guys.length; g++) {
-            if (!this.guys[g].done && this.guys[g].isCloseEnoughToShoot()) {
-                guy = this.guys[g];
-                this.guys.splice(g, 1);
-                break;
-            }
-        }
+        const guy = this.popAvailableGuy();
         if (!guy) {
             // Can't fire without a guy!
             return;
         }
+
         guy.done = true;
 
         const bullet = new Bullet(this.level);
@@ -209,6 +232,48 @@ export class Player extends RunningEntity {
         }
 
         this.level.addEntity(bullet);
+
+        this.bulletCooldownCount = this.bulletCooldown;
+    }
+
+    popAvailableGuy(): Guy | undefined {
+        // for (let g = 0; g < this.availableGuys.length; g++) {
+        //     const guy = this.availableGuys[g];
+        //     if (!guy.done && !guy.exhausted && guy.isCloseEnoughToJump()) {
+        //         this.availableGuys.splice(g, 1);
+        //         guy.exhausted = true;
+        //         return guy;
+        //     }
+        // }
+        const guy = this.availableGuys.shift();
+        if (guy) {
+            this.availableGuysSet.delete(guy);
+        }
+        return guy;
+    }
+
+    bulletDoubleJump() {
+        const guy = this.popAvailableGuy();
+        if (!guy) {
+            // Can't fire without a guy!
+            return;
+        }
+
+        // Push him away.
+        guy.maybeStopFollowingPlayer();
+        guy.midX = this.midX;
+        guy.maxY = this.midY + 1;
+        guy.dy = -0.5 * this.jumpSpeed;
+        const facingDirMult = this.facingDir == FacingDir.Right ? 1 : -1;
+        guy.dx = -facingDirMult * this.runSpeed;
+
+        // Some double jump effect.
+
+        // // TODO: This feels like it needs to be balanced more... Hm.
+        // this.dy -= 0.23 * this.jumpSpeed;
+
+        // Just stall in mid air, for the moment.
+        this.dy = Math.min(this.dy, 0);
 
         this.bulletCooldownCount = this.bulletCooldown;
     }

@@ -8,7 +8,6 @@ import {
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { lerp } from '../../lib/util';
-import { Player } from './player';
 import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
@@ -36,13 +35,14 @@ export class Guy extends RunningEntity {
 
     isTooFarCount = 0;
     maxIsTooFarCount = 1;
+    exhausted = false;
 
     closeness = lerp(physFromPx(5), physFromPx(15), rng());
 
-    player: Player | undefined;
-
     internalType: GuyType = 'normal';
     typeSet = new Set([this.type]);
+
+    followingPlayer = false;
 
     set type(type: GuyType) {
         this.internalType = type;
@@ -60,10 +60,18 @@ export class Guy extends RunningEntity {
             this.jumpCount -= dt;
         }
 
-        if (this.player === undefined) {
-            this.waitForPlayer(dt);
-        } else {
+        if (this.isStanding()) {
+            this.exhausted = false;
+        }
+
+        this.checkForPlayer();
+
+        if (this.followingPlayer) {
             this.followPlayer(dt);
+        }
+        else {
+            this.maybeSmallJump();
+            this.dampX(dt);
         }
 
         this.limitFallSpeed(dt);
@@ -72,22 +80,19 @@ export class Guy extends RunningEntity {
         this.move(dt);
     }
 
-    waitForPlayer(dt: number) {
-        const player = this.level.player;
-
+    checkForPlayer() {
         // Check if we're near the player.
-        if (player.isTouchingEntity(this)) {
-            this.player = player;
-            this.followPlayer(dt);
-            this.player.guys.push(this);
-        } else {
-            this.dampX(dt);
-            this.maybeSmallJump();
+        // TODO: This could be make more lenient. Maybe check for exhausted state too.
+        if (!this.exhausted && this.level.player.isTouchingEntity(this) && this.level.player.isStanding()) {
+            // Add to available and known guys, if not already there.
+            this.level.player.addGuy(this);
+            // And start following the player.
+            this.followingPlayer = true;
         }
     }
 
     followPlayer(dt: number) {
-        const player = this.player!;
+        const player = this.level.player;
         // TODO: This could be replaced with proper pathfinding. For the moment, just move towards the player.
         if (this.midX < player.midX - this.closeness) {
             this.reflexCount += dt;
@@ -142,23 +147,29 @@ export class Guy extends RunningEntity {
     }
 
     teleportToPlayer() {
-        this.midX = this.player!.midX;
-        this.maxY = this.player!.maxY;
-        this.dx = this.player!.dx + lerp(-speedNoise, speedNoise, rng());
-        this.dy = this.player!.dy + lerp(-speedNoise, speedNoise, rng());
+        this.midX = this.level.player.midX;
+        this.maxY = this.level.player.maxY;
+        this.dx = this.level.player.dx + lerp(-speedNoise, speedNoise, rng());
+        this.dy = this.level.player.dy + lerp(-speedNoise, speedNoise, rng());
     }
 
     isTooFar() {
         // Less lenient in the y direction
-        const yDiff = Math.abs(this.maxY - this.player!.maxY);
-        const xDiff = Math.abs(this.midX - this.player!.midX);
+        const yDiff = Math.abs(this.maxY - this.level.player.maxY);
+        const xDiff = Math.abs(this.midX - this.level.player.midX);
         return yDiff > 1.5 * TILE_SIZE || xDiff > 8 * TILE_SIZE;
     }
 
     isCloseEnoughToShoot() {
-        const yDiff = Math.abs(this.maxY - this.player!.maxY);
-        const xDiff = Math.abs(this.midX - this.player!.midX);
+        const yDiff = Math.abs(this.maxY - this.level.player.maxY);
+        const xDiff = Math.abs(this.midX - this.level.player.midX);
         return xDiff < TILE_SIZE && yDiff < TILE_SIZE;
+    }
+
+    isCloseEnoughToJump() {
+        const yDiff = Math.abs(this.maxY - this.level.player.maxY);
+        const xDiff = Math.abs(this.midX - this.level.player.midX);
+        return xDiff < 3 * TILE_SIZE && yDiff < 3 * TILE_SIZE;
     }
 
     smallJump() {
@@ -185,6 +196,15 @@ export class Guy extends RunningEntity {
         const initialDx = this.dx;
         super.onRightCollision();
         this.dx = -initialDx;
+    }
+
+    maybeStopFollowingPlayer() {
+        if (this.type === 'unique') {
+            // Always follow the player.
+        }
+        else {
+            this.followingPlayer = false;
+        }
     }
 
     render(context: CanvasRenderingContext2D): void {

@@ -3,7 +3,7 @@ import { TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
 import { Background } from './background';
 import { FocusCamera } from './camera';
-import { Creature, CreatureBehavior } from './entity/enemies/creature';
+import { Creature } from './entity/enemies/creature';
 import { Entity } from './entity/entity';
 import { Guy } from './entity/guy';
 import { Player } from './entity/player';
@@ -17,6 +17,7 @@ import { Tiles } from './tile/tiles';
 export class Level {
     game: Game;
     entities: Entity[] = [];
+    entitySet: Set<Entity> = new Set();
     entitiesToAdd: Entity[] = [];
     image: HTMLImageElement | undefined;
     levelInfo: LevelInfo;
@@ -83,7 +84,7 @@ export class Level {
                     guy.midX = basePos.x;
                     guy.maxY = basePos.y;
                     guy.type = 'unique';
-                    this.entities.push(guy);
+                    this.immediatelyAddEntity(guy);
                 } else if (color === 'ff00ff') {
                     this.start = basePos;
                     this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Spawn, {
@@ -99,28 +100,34 @@ export class Level {
 
                     const modifier = parseInt(color[5], 16);
 
-                    enemy.facingDir = modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
+                    enemy.facingDir =
+                        modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
 
-                    switch (modifier) {
-                        case 0:
-                        case 1:
-                            enemy.behavior = CreatureBehavior.Still;
-                            break;
-                        case 2:
-                        case 3:
-                            enemy.behavior = CreatureBehavior.Running;
-                            break;
-                    }
+                    enemy.behavior = modifier >> 1;
 
-                    this.entities.push(enemy);
+                    this.immediatelyAddEntity(enemy);
 
-                    // this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Platform, { allowGrow: false });
-                    // this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
+                        allowGrow: false,
+                    });
+                } else if (color === '333333') {
+                    this.tiles.objectLayer.setTile(
+                        { x, y },
+                        ObjectTile.Platform,
+                        { allowGrow: false }
+                    );
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
+                        allowGrow: false,
+                    });
                 } else if (color === '0000ff') {
-                    // TODO: Destroyable blocks.
-
-                    // this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Platform, { allowGrow: false });
-                    // this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, { allowGrow: false });
+                    this.tiles.objectLayer.setTile(
+                        { x, y },
+                        ObjectTile.Destroyable,
+                        { allowGrow: false }
+                    );
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
+                        allowGrow: false,
+                    });
                 } else {
                     console.log(`Unknown color: ${color} at ${x}, ${y}.`);
                 }
@@ -153,8 +160,16 @@ export class Level {
         //     const enemy = new Creature(this);
         //     enemy.midX = basePos.x;
         //     enemy.maxY = basePos.y;
-        //     this.entities.push(enemy);
+        //     this.immediatelyAddEntity(enemy);
         // }
+    }
+
+    immediatelyAddEntity(entity: Entity) {
+        if (this.entitySet.has(entity)) {
+            return;
+        }
+        this.entities.push(entity);
+        this.entitySet.add(entity);
     }
 
     addEntity(entity: Entity) {
@@ -186,7 +201,7 @@ export class Level {
         const player = new Player(this);
         player.midX = this.start.x;
         player.maxY = this.start.y;
-        this.entities.push(player);
+        this.immediatelyAddEntity(player);
 
         this.player = player;
 
@@ -195,15 +210,20 @@ export class Level {
 
     update(dt: number) {
         for (const entity of this.entities) {
-            entity.update(dt);
+            if (!entity.done) {
+                entity.update(dt);
+            }
         }
 
-        this.entities.push(...this.entitiesToAdd);
+        for (const ent of this.entitiesToAdd) {
+            this.immediatelyAddEntity(ent);
+        }
         this.entitiesToAdd = [];
 
         for (let i = this.entities.length - 1; i >= 0; i--) {
             if (this.entities[i].done) {
-                this.entities.splice(i, 1);
+                const ent = this.entities.splice(i, 1)[0];
+                this.entitySet.delete(ent);
             }
         }
 
@@ -217,11 +237,13 @@ export class Level {
 
         this.background.render(context);
 
-        this.tiles.render(context);
+        this.tiles.objectLayer.render(context);
 
         for (const entity of this.entities) {
             entity.render(context);
         }
+
+        this.tiles.baseLayer.render(context);
     }
 
     win() {

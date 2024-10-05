@@ -1,25 +1,32 @@
 import { Dir, FacingDir } from '../../../common';
 import { FPS, physFromPx, PHYSICS_SCALE } from '../../../constants';
 import { Aseprite } from '../../../lib/aseprite';
+import { PhysicTile } from '../../tile/tiles';
 import { Guy } from '../guy';
 import { RunningEntity } from '../running-entity';
 
 export enum CreatureBehavior {
     Still,
     Running,
+    CautiousRunning,
 }
+
+const recklessRunSpeed = 1.0 * PHYSICS_SCALE * FPS;
+const cautiousRunSpeed = 0.7 * PHYSICS_SCALE * FPS;
 
 export class Creature extends RunningEntity {
     w = physFromPx(13);
     h = physFromPx(10);
 
-    runSpeed = 0.7 * PHYSICS_SCALE * FPS;
+    runSpeed = 1.0 * PHYSICS_SCALE * FPS;
     hurtJumpSpeed = 1.5 * PHYSICS_SCALE * FPS;
     hurtXSpeed = 1.5 * PHYSICS_SCALE * FPS;
 
     health = 3;
 
     behavior = CreatureBehavior.Running;
+    startedRunning = false;
+    distToAwaken = physFromPx(100);
 
     update(dt: number): void {
         this.animCount += dt;
@@ -29,7 +36,12 @@ export class Creature extends RunningEntity {
                 this.dampX(dt);
                 break;
             case CreatureBehavior.Running:
+                this.runSpeed = recklessRunSpeed;
                 this.updateRunning(dt);
+                break;
+            case CreatureBehavior.CautiousRunning:
+                this.runSpeed = cautiousRunSpeed;
+                this.updateCautiousRunning(dt);
                 break;
         }
 
@@ -40,16 +52,57 @@ export class Creature extends RunningEntity {
     }
 
     updateRunning(dt: number): void {
-        if (this.isStanding()) {
-            if (this.facingDir == FacingDir.Left) {
-                this.runLeft(dt);
+        this.checkPlayerDist();
+
+        if (this.startedRunning) {
+            if (this.isStanding()) {
+                if (this.facingDir == FacingDir.Left) {
+                    this.runLeft(dt);
+                }
+                else {
+                    this.runRight(dt);
+                }
             }
             else {
-                this.runRight(dt);
+                this.dampX(dt);
             }
         }
-        else {
-            this.dampX(dt);
+    }
+
+    updateCautiousRunning(dt: number): void {
+        this.checkPlayerDist();
+
+        if (this.startedRunning) {
+            if (this.isStanding()) {
+                // Check the position a little bit ahead, if it's empty, turn around to avoid falling.
+                const facingDirMult = this.facingDir === FacingDir.Left ? -1 : 1;
+                const checkX = this.midX + facingDirMult * this.w / 2;
+                const checkY = this.maxY + 1;
+                const tile = this.level.tiles.getTileAtCoord({x: checkX, y: checkY});
+                if (tile === PhysicTile.Empty) {
+                    this.facingDir = FacingDir.opposite(this.facingDir);
+                }
+
+                if (this.facingDir == FacingDir.Left) {
+                    this.runLeft(dt);
+                }
+                else {
+                    this.runRight(dt);
+                }
+            }
+            else {
+                this.dampX(dt);
+            }
+        }
+    }
+
+    checkPlayerDist() {
+        if (!this.startedRunning) {
+            const xDistToPlayer = this.level.player.midX - this.midX;
+            const yDistToPlayer = this.level.player.midY - this.midY;
+            if (Math.abs(xDistToPlayer) < this.distToAwaken && Math.abs(yDistToPlayer) < this.distToAwaken) {
+                this.startedRunning = true;
+            }
         }
     }
 
