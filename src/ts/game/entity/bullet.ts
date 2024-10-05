@@ -3,6 +3,8 @@ import { FPS, physFromPx, PHYSICS_SCALE } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
 import { Level } from "../level";
 import { Entity } from "./entity";
+import { Guy } from "./guy";
+import { Player } from "./player";
 
 const SPEED = 6 * PHYSICS_SCALE * FPS;
 
@@ -10,6 +12,7 @@ export class Bullet extends Entity {
 
     // Bullets last 3 seconds.
     lifetime = 3;
+    guy: Guy;
 
     constructor(level: Level) {
         super(level);
@@ -39,26 +42,43 @@ export class Bullet extends Entity {
     }
 
     onDownCollision(): void {
-        this.done = true;
+        super.onDownCollision();
+        this.endBullet();
     }
 
     onLeftCollision(): void {
-        this.done = true;
+        super.onLeftCollision();
+        this.endBullet();
     }
 
     onRightCollision(): void {
-        this.done = true;
+        super.onRightCollision();
+        this.endBullet();
     }
 
     onUpCollision(): void {
+        super.onUpCollision();
+        this.endBullet();
+    }
+
+    endBullet() {
+        this.level.addEntity(this.guy);
+        this.guy.done = false;
+        this.guy.midX = this.midX;
+        this.guy.midY = this.midY;
+        this.guy.dx = 0;
+        this.guy.dy = 0;
         this.done = true;
+        // Add back to player I guess
+        const player = this.level.getEntity(Player)!
+        player.guys.push(this.guy);
     }
 
     update(dt: number) {
         super.update(dt);
 
         if (this.animCount > this.lifetime) {
-            this.done = true;
+            this.endBullet();
         }
     }
 

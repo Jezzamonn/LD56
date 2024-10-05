@@ -55,6 +55,8 @@ export class Player extends Entity {
     lookingUp = false;
     lookingDown = false;
 
+    guys: Guy[] = [];
+
     cameraFocus(): Point {
         // TODO: This made people dizzy, should adjust it / change the speed the camera moves.
         const facingMult = this.facingDir == FacingDir.Right ? 1 : -1;
@@ -180,6 +182,7 @@ export class Player extends Entity {
             guy.midX = this.midX;
             guy.maxY = this.minY;
             this.level.addEntity(guy);
+            this.guys.push(guy);
         }
 
         // Checking for winning
@@ -191,7 +194,15 @@ export class Player extends Entity {
     }
 
     fireBullet() {
+        // Can't fire without a guy!
+        if (this.guys.length === 0) {
+            return;
+        }
+        const guy = this.guys.shift()!;
+        guy.done = true;
+
         const bullet = new Bullet(this.level);
+        bullet.guy = guy;
 
         const facingDirMult = this.facingDir == FacingDir.Right ? 1 : -1;
 
@@ -264,7 +275,7 @@ export class Player extends Entity {
 
         if (!this.isStanding()) {
             if (this.dy > 0 && this.isAgainstLeftWall()) {
-                animName = 'wall-slide';
+                animName = 'wall-slide'
             } else if (this.dy > 0 && this.isAgainstRightWall()) {
                 animName = 'wall-slide';
             } else {

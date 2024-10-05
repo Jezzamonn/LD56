@@ -12,14 +12,15 @@ export class Guy extends Entity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
     jumpSpeed = 3 * PHYSICS_SCALE * FPS;
     smallJumpSpeed = 1 * PHYSICS_SCALE * FPS;
-    groundAccel = (0.25 * PHYSICS_SCALE * FPS * FPS) / 2;
+    groundAccel = (0.35 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
     gravity = 0.13 * PHYSICS_SCALE * FPS * FPS;
 
     w = physFromPx(3);
     h = physFromPx(3);
 
-    reflexTime = lerp(0.1, 0.5, rng());
+    reflexTime = lerp(0, 0.3, rng());
+    jumpReflexTime = this.reflexTime + 0.1;
     reflexCount = 0;
 
     jumpCount = 0;
@@ -76,7 +77,7 @@ export class Guy extends Entity {
         if (playerIsAbove) {
             if (!this.tryingToJump) {
                 this.tryingToJump = true;
-                this.jumpCount = this.reflexTime;
+                this.jumpCount = this.jumpReflexTime;
             }
         }
         else {
