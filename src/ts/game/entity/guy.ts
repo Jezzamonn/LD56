@@ -237,7 +237,11 @@ export class Guy extends RunningEntity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.facingDir === FacingDir.Right,
             loop: true,
-            layers: this.isUnique ? uniqueSet : GuyType.sets[this.type],
+            layers: this.layerSet,
         });
+    }
+
+    get layerSet() {
+        return this.isUnique ? uniqueSet : GuyType.sets[this.type];
     }
 }

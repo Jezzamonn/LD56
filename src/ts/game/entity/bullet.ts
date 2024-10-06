@@ -7,7 +7,7 @@ import { PhysicTile } from "../tile/tiles";
 import { Column } from "./column";
 import { Creature } from "./enemies/creature";
 import { Entity } from "./entity";
-import { Guy, GuyType } from "./guy";
+import { Guy } from "./guy";
 
 const SPEED = 6 * PHYSICS_SCALE * FPS;
 
@@ -216,7 +216,7 @@ export class Bullet extends Entity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.dx > 0,
             loop: true,
-            layers: GuyType.sets[this.guy.type],
+            layers: this.guy.layerSet,
         });
     }
 }

@@ -300,6 +300,8 @@ export class Player extends RunningEntity {
             bullet.midY = this.midY + physFromPx(1);
         }
 
+        SFX.play('shoot');
+
         this.level.addEntity(bullet);
 
         this.bulletCooldownCount = this.bulletCooldown;
@@ -331,6 +333,7 @@ export class Player extends RunningEntity {
         switch (guy.type) {
             case 'normal':
                 this.dy = Math.min(this.dy, 0);
+                SFX.play('shoot');
                 break;
             case 'fire':
                 // Straight up double jump.
