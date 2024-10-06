@@ -248,7 +248,7 @@ export class Game {
     }
 
     static async preload() {
-        const sprites = ['player', 'lilguy', 'creature', 'torch', 'column'];
+        const sprites = ['player', 'lilguy', 'creature', 'torch', 'column', 'grass', 'waterfall'];
         const spritePromises = sprites.map((name) => Aseprite.loadImage({ name, basePath: 'sprites' }));
 
         const music = ['exploring'];

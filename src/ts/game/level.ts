@@ -1,10 +1,10 @@
 import { Point } from '../common';
 import { DEBUG, TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
-import { seededRandom } from '../lib/util';
 import { Background } from './background';
 import { FocusCamera } from './camera';
 import { Column } from './entity/column';
+import { Decor } from './entity/decor';
 import { Creature } from './entity/enemies/creature';
 import { Entity } from './entity/entity';
 import { Guy, GuyType } from './entity/guy';
@@ -151,38 +151,7 @@ export class Level {
 
         this.spawnPlayer();
 
-        // this.spawnDecor();
-    }
-
-    spawnDecor() {
-        // Use a new RNG so it's consistent.
-        const rng = seededRandom('gjskljkljf');
-
-        // Quick way to spawn things for testing.
-        const spawnPositions: Point[] = [];
-        for (let x = this.tiles.baseLayer.minX; x <= this.tiles.baseLayer.maxX; x++) {
-            for (let y = this.tiles.baseLayer.minY; y <= this.tiles.baseLayer.maxY; y++) {
-                const tile = this.tiles.baseLayer.getTile({ x, y });
-                const below = this.tiles.baseLayer.getTile({ x, y: y + 1 });
-                if (tile === BaseTile.Empty && below === BaseTile.Wall) {
-                    spawnPositions.push({ x, y });
-                }
-            }
-        }
-        for (let i = 0; i < spawnPositions.length / 20; i++) {
-            if (spawnPositions.length === 0) {
-                break;
-            }
-            const index = Math.floor(rng() * spawnPositions.length);
-            const pos = spawnPositions.splice(index, 1)[0];
-            const basePos = this.tiles.getTileCoord(pos, { x: 0.5, y: 1 });
-
-            const thing = new Torch(this);
-            thing.midX = basePos.x;
-            thing.maxY = basePos.y;
-            this.immediatelyAddEntity(thing);
-            console.log(`Spawned torch at ${pos.x}, ${pos.y}.`);
-        }
+        Decor.addDecorToLevel(this);
     }
 
     immediatelyAddEntity(entity: Entity) {
