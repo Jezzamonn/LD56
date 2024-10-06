@@ -10,7 +10,6 @@ profiles/
 
 *.ttf
 
-/music/
-!music/*.mp3
+music/*band
 
 /level/
