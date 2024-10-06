@@ -1,5 +1,5 @@
-import { FacingDir, Point } from '../common';
-import { TILE_SIZE_PX } from '../constants';
+import { Point } from '../common';
+import { DEBUG, TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
 import { Background } from './background';
 import { FocusCamera } from './camera';
@@ -88,7 +88,8 @@ export class Level {
                     const guy = new Guy(this);
                     guy.midX = basePos.x;
                     guy.maxY = basePos.y;
-                    guy.type = GuyType.Unique;
+                    guy.type = GuyType.Normal;
+                    guy.isUnique = true;
                     this.immediatelyAddEntity(guy);
                 } else if (color === 'ffff00' || color === 'ffff99') {
                     // Torches
@@ -99,18 +100,11 @@ export class Level {
                         torch.visible = false;
                     }
                     this.immediatelyAddEntity(torch);
-                } else if (color.slice(0, 5) === 'ff000') {
+                } else if (color.slice(0, 5) === 'ff000' || color.slice(0, 5) === 'ff001') {
                     const enemy = new Creature(this);
                     enemy.midX = basePos.x;
                     enemy.maxY = basePos.y;
-
-                    const modifier = parseInt(color[5], 16);
-
-                    enemy.facingDir =
-                        modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
-
-                    enemy.behavior = modifier >> 1;
-
+                    enemy.initFromColor(color.slice(4));
                     this.immediatelyAddEntity(enemy);
 
                     this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
@@ -229,7 +223,9 @@ export class Level {
 
     update(dt: number) {
         // DEBUG: Run the game faster to test it faster.
-        // dt *= 2;
+        if (DEBUG && this.game.keys.anyIsPressed(['ShiftLeft', 'ShiftRight'])) {
+            dt *= 2;
+        }
 
         for (const entity of this.entities) {
             if (!entity.done) {

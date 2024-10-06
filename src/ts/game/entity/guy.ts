@@ -13,13 +13,12 @@ import { RunningEntity } from './running-entity';
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
 
 export enum GuyType {
-    Unique = 'unique',
     Normal = 'normal',
     Fire = 'fire',
 }
 
 export namespace GuyType {
-    const types = ['unique', 'normal', 'fire'];
+    const types = ['normal', 'fire'];
 
     export const sets = {};
 
@@ -27,6 +26,7 @@ export namespace GuyType {
         sets[type] = new Set([type]);
     }
 }
+const uniqueSet = new Set(['unique']);
 
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
@@ -50,6 +50,8 @@ export class Guy extends RunningEntity {
     isTooFarCount = 0;
     maxIsTooFarCount = 1;
     exhausted = false;
+
+    isUnique = false;
 
     closeness = lerp(physFromPx(5), physFromPx(15), rng());
 
@@ -206,7 +208,7 @@ export class Guy extends RunningEntity {
     }
 
     maybeStopFollowingPlayer() {
-        if (this.type === 'unique') {
+        if (this.isUnique) {
             // Always follow the player.
         }
         else {
@@ -229,7 +231,7 @@ export class Guy extends RunningEntity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.facingDir === FacingDir.Right,
             loop: true,
-            layers: GuyType.sets[this.type],
+            layers: this.isUnique ? uniqueSet : GuyType.sets[this.type],
         });
     }
 }

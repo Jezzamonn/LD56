@@ -11,9 +11,6 @@ export enum CreatureBehavior {
     CautiousRunning,
 }
 
-const recklessRunSpeed = 1.0 * PHYSICS_SCALE * FPS;
-const cautiousRunSpeed = 0.7 * PHYSICS_SCALE * FPS;
-
 export class Creature extends RunningEntity {
     w = physFromPx(13);
     h = physFromPx(10);
@@ -38,11 +35,9 @@ export class Creature extends RunningEntity {
                 this.dampX(dt);
                 break;
             case CreatureBehavior.Running:
-                this.runSpeed = recklessRunSpeed;
                 this.updateRunning(dt);
                 break;
             case CreatureBehavior.CautiousRunning:
-                this.runSpeed = cautiousRunSpeed;
                 this.updateCautiousRunning(dt);
                 break;
         }
@@ -51,6 +46,31 @@ export class Creature extends RunningEntity {
         this.applyGravity(dt);
 
         this.move(dt);
+    }
+
+    initFromColor(lastColorPart: string) {
+        const modifier = parseInt(lastColorPart[1], 16);
+
+        this.facingDir =
+            modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
+
+        this.behavior = modifier >> 1;
+        if (this.behavior === CreatureBehavior.Running) {
+            this.runSpeed = 1.0 * PHYSICS_SCALE * FPS;
+        }
+        else if (this.behavior === CreatureBehavior.CautiousRunning) {
+            this.runSpeed = 0.7 * PHYSICS_SCALE * FPS;
+        }
+
+        if (lastColorPart[4] === '1') {
+            this.type = GuyType.Fire;
+            this.health = 3;
+            this.runSpeed *= 1.2;
+        }
+        else {
+            this.type = GuyType.Normal;
+            this.health = 2;
+        }
     }
 
     updateRunning(dt: number): void {

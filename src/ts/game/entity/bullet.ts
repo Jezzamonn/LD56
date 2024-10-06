@@ -86,7 +86,7 @@ export class Bullet extends Entity {
         }
 
         // Only the unique guy respawns.
-        if (this.guy.type === 'unique') {
+        if (this.guy.isUnique) {
             this.guy.midX = this.midX;
             this.guy.midY = this.midY;
             this.guy.dx = 0;

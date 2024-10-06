@@ -28,7 +28,7 @@ const BUFFER_JUMP_TIME_SECS = 0.1;
 
 export class Player extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
-    jumpSpeed = 3 * PHYSICS_SCALE * FPS;
+    jumpSpeed = 3.1 * PHYSICS_SCALE * FPS;
     wallSlideSpeed = 1 * PHYSICS_SCALE * FPS;
     maxFallSpeed = 3 * PHYSICS_SCALE * FPS;
 
@@ -187,7 +187,8 @@ export class Player extends RunningEntity {
         guy.midX = this.midX;
         guy.maxY = this.minY;
         if (this.knownGuys.length == 0) {
-            guy.type = GuyType.Unique;
+            guy.type = GuyType.Normal;
+            guy.isUnique = true;
         } else if (this.knownGuys.length < 3) {
             guy.type = GuyType.Normal;
         }
@@ -280,7 +281,7 @@ export class Player extends RunningEntity {
         }
 
         // Push him away.
-        if (guy.type === GuyType.Unique) {
+        if (guy.isUnique) {
             guy.maybeStopFollowingPlayer();
             guy.midX = this.midX;
             guy.maxY = this.midY + 1;
@@ -296,7 +297,6 @@ export class Player extends RunningEntity {
         // Some double jump effect.
 
         switch (guy.type) {
-            case 'unique':
             case 'normal':
                 this.dy = Math.min(this.dy, 0);
                 break;
