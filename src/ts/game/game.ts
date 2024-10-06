@@ -44,8 +44,7 @@ export class Game {
         this.canvas = canvas;
         this.context = context;
 
-        // TODO: Support touch keys again.
-        this.keys = new ComboKeys(new KeyboardKeys());
+        this.keys = this.nullKeys;
 
         Sounds.loadMuteState();
     }
@@ -65,12 +64,18 @@ export class Game {
 
         this.startLevel(0);
 
-        // TODO: Set this at a more opportune time.
-        Sounds.setSong('exploring');
-
         if (DEBUG) {
             this.loadPlayerPosition();
         }
+    }
+
+    startPlaying() {
+        // TODO: Set this at a more opportune time.
+        Sounds.setSong('exploring');
+
+        // TODO: Support touch keys again.
+        this.keys = new ComboKeys(new KeyboardKeys());
+        this.keys.setUp();
     }
 
     nextLevel() {

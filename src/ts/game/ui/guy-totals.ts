@@ -5,8 +5,16 @@ const types: GuyType[] = [GuyType.Normal, GuyType.Fire];
 
 let lastValues: Map<GuyType, string> = new Map();
 
+let shownContainer = false;
+
 export namespace GuyTotals {
     export function updateGuyTotals(player: Player): void {
+        if (!shownContainer && player.knownGuys.length > 0) {
+            const guyTotals = document.querySelector('.guy-totals')! as HTMLElement;
+            guyTotals.classList.remove('hidden');
+            shownContainer = true;
+        }
+
         const availableTotals = new Map<GuyType, number>();
         const knownTotals = new Map<GuyType, number>();
         for (const type of types) {
