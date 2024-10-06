@@ -58,6 +58,8 @@ export class Player extends RunningEntity {
 
     isDead = false;
 
+    hadFirstShot = false;
+
     cameraFocus(): Point {
         // TODO: This made people dizzy, should adjust it / change the speed the camera moves.
         const facingMult = this.facingDir == FacingDir.Right ? 1 : -1;
@@ -279,6 +281,11 @@ export class Player extends RunningEntity {
         if (!guy) {
             // Can't fire without a guy!
             return;
+        }
+
+        if (!this.hadFirstShot) {
+            this.level.game.showTitle();
+            this.hadFirstShot = true;
         }
 
         guy.done = true;

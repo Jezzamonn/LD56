@@ -1,9 +1,11 @@
 import {
     DEBUG,
+    FPS,
     GAME_HEIGHT_PX,
     GAME_WIDTH_PX,
     PHYSICS_SCALE,
     RESTART_KEYS,
+    SELECT_KEYS,
     TIME_STEP,
 } from '../constants';
 import { Aseprite } from '../lib/aseprite';
@@ -25,11 +27,14 @@ export class Game {
     simulatedTimeMs: number | undefined;
 
     levelIndex = 0;
-    showingTitle = true;
     curLevel: Level | undefined;
 
     keys: RegularKeys;
     nullKeys = new NullKeys();
+
+    slowMoFactor = 1;
+
+    cutsceneThing: Generator | undefined;
 
     constructor(canvasSelector: string) {
         const canvas =
@@ -152,7 +157,14 @@ export class Game {
         try {
             this.handleInput();
 
-            this.curLevel?.update(dt);
+            if (this.cutsceneThing) {
+                const {done} = this.cutsceneThing.next();
+                if (done) {
+                    this.cutsceneThing = undefined;
+                }
+            }
+
+            this.curLevel?.update(dt * this.slowMoFactor);
 
             this.keys.resetFrame();
 
@@ -262,5 +274,29 @@ export class Game {
             ...musicPromises,
         ]);
         SFX.preload();
+    }
+
+    // Cutscene stuff
+    showTitle() {
+        this.cutsceneThing = this.showTitleGenerator();
+    }
+
+    *showTitleGenerator() {
+        yield;
+        yield;
+        this.slowMoFactor = 0;
+        const titleElem = document.querySelector('.title')!;
+        titleElem.classList.remove('hidden');
+
+        for (let i = 0; i < 1 * FPS; i++) {
+            yield;
+        }
+
+        while (!this.keys.anyIsPressed(SELECT_KEYS)) {
+            yield;
+        }
+
+        this.slowMoFactor = 1;
+        titleElem.classList.add('hidden');
     }
 }

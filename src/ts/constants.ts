@@ -27,7 +27,7 @@ export const JUMP_KEYS = ['Space', 'KeyZ'];
 export const SHOOT_KEYS = ['KeyX'];
 export const SWITCH_WEAPON_KEYS = ['ShiftLeft', 'ShiftRight'];
 
-export const SELECT_KEYS = ['Space', 'Enter'];
+export const SELECT_KEYS = ['Space', 'Enter', 'KeyZ', 'KeyX'];
 export const TITLE_KEYS = ['Space', 'Enter'];
 export const RESTART_KEYS = ['KeyR'];
 
