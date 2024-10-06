@@ -75,8 +75,7 @@ export class Game {
     }
 
     startPlaying() {
-        // TODO: Set this at a more opportune time.
-        Sounds.setSong('exploring');
+        // TODO: Some default cutscene.
 
         // TODO: Support touch keys again.
         this.keys = new ComboKeys(new KeyboardKeys());
@@ -288,9 +287,17 @@ export class Game {
         const titleElem = document.querySelector('.title')!;
         titleElem.classList.remove('hidden');
 
-        for (let i = 0; i < 1 * FPS; i++) {
-            yield;
-        }
+        yield* generatorWait(1);
+
+        const h2Elem = titleElem.querySelector('h2')!;
+        h2Elem.classList.remove('invisible');
+        SFX.play('explode');
+
+        yield* generatorWait(2);
+
+        const pElem = titleElem.querySelector('p')!;
+        pElem.classList.remove('invisible');
+        SFX.play('explode');
 
         while (!this.keys.anyIsPressed(SELECT_KEYS)) {
             yield;
@@ -298,5 +305,12 @@ export class Game {
 
         this.slowMoFactor = 1;
         titleElem.classList.add('hidden');
+        Sounds.setSong('exploring');
+    }
+}
+
+function *generatorWait(time: number) {
+    for (let i = 0; i < time * FPS; i++) {
+        yield;
     }
 }
