@@ -21,4 +21,5 @@ Note: There isn't a proper "you win" screen, but there is a special ending place
 
 The game has half-baked support for WASD but there's no good button for shoot right now. Let me if you have any ideas!
 
-Also Azerty sorry for the awkward z & x controls. I'll try to get button mapping as a post-compo tweak.
+Also Azerty keyboard users - I'll try to get button mapping as a post-compo tweak!
+
