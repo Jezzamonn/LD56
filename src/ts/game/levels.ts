@@ -1,5 +1,4 @@
 import { Images } from "../lib/images";
-import { Sounds } from "../lib/sounds";
 
 export interface LevelInfo {
     name: string;
@@ -11,9 +10,6 @@ export const LEVELS: LevelInfo[] = [
     {
         name: 'level',
     },
-    {
-        name: 'level2',
-    },
 ];
 
 export class Levels {
@@ -21,13 +17,8 @@ export class Levels {
         const promises: Promise<any>[] = [];
         for (const level of LEVELS) {
             promises.push(
-                Images.loadImage({name: level.name, path: 'level/', extension: 'gif'}),
+                Images.loadImage({name: level.name, path: 'level/', extension: 'png'}),
             );
-            if (level.song && Sounds.audios[level.song] === undefined) {
-                promises.push(
-                    Sounds.loadSound({name: level.song, path: 'music/'}),
-                );
-            }
         }
 
         return Promise.all(promises);
