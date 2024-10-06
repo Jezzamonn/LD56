@@ -41,6 +41,8 @@ const dialog = [
     `"Hey! I'm here!"`,
     `"Ahoy, matey!! Hehe"`,
     `"Hiii!!"`,
+    `"Pressing Z in the air will use our secondary ability!"`,
+    `"Gray guys stall you in the air."`,
 ];
 let dialogIndex = 0;
 function getDialog(): string {
