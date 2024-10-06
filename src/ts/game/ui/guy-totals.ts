@@ -2,6 +2,8 @@ import { Guy, GuyType } from "../entity/guy";
 
 const types: GuyType[] = [GuyType.Normal, GuyType.Fire];
 
+let lastValues: Map<GuyType, string> = new Map();
+
 export namespace GuyTotals {
     export function updateGuyTotals(availableGuys: Guy[], knownGuys: Guy[]): void {
         const availableTotals = new Map<GuyType, number>();
@@ -21,8 +23,13 @@ export namespace GuyTotals {
         }
 
         for (const type of types) {
-            const elem = document.querySelector(`.guy-total-${type}`)! as HTMLElement;
-            elem.innerText = `${availableTotals.get(type)!}/${knownTotals.get(type)!}`;
+            const newValue = `${availableTotals.get(type)!}/${knownTotals.get(type)!}`;
+            if (newValue !== lastValues.get(type)) {
+                const elem = document.querySelector(`.guy-total-${type}`)! as HTMLElement;
+                elem.innerText = newValue;
+                elem.classList.toggle('hidden', knownTotals.get(type)! === 0);
+                lastValues.set(type, newValue);
+            }
         }
     }
 }
