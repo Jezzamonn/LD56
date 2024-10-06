@@ -43,7 +43,7 @@
       "patterns": [
         "src/ts/**"
       ],
-      "extensions": "js,jsx,ts,tsx"
+      "extensions": "js,jsx,ts,tsx,json"
     }
   },
   "author": "Jezzamon",

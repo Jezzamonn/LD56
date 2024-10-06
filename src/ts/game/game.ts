@@ -13,7 +13,7 @@ import { Background } from './background';
 import { centerCanvas } from './camera';
 import { Level } from './level';
 import { Levels, LEVELS } from './levels';
-import { SFX } from './sfx';
+import { SFX } from './sfx/sfx';
 import { Tiles } from './tile/tiles';
 
 export class Game {

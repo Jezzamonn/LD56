@@ -12,7 +12,7 @@ import {
     UP_KEYS
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
-import { SFX } from '../sfx';
+import { SFX } from '../sfx/sfx';
 import { PhysicTile } from '../tile/tiles';
 import { Bullet } from './bullet';
 import { Creature } from './enemies/creature';
@@ -68,7 +68,6 @@ export class Player extends RunningEntity {
     jump() {
         this.dy = -this.jumpSpeed;
         this.needToReleaseJumpKeyToDoubleJump = true;
-        SFX.play('jump');
         // Reset coyote time variables.
         this.onGroundCount = 0;
     }
@@ -126,6 +125,7 @@ export class Player extends RunningEntity {
         }
 
         if (keys.anyWasPressedThisFrame(JUMP_KEYS) && this.onGroundCount > 0) {
+            SFX.play('jump');
             this.jump();
         } else if (keys.anyIsPressed(JUMP_KEYS) && !this.needToReleaseJumpKeyToDoubleJump) {
             // Use 'bullets' as double jumps.
@@ -300,7 +300,9 @@ export class Player extends RunningEntity {
             bullet.midY = this.midY + physFromPx(1);
         }
 
-        SFX.play('shoot');
+        // Play shootNormal, shootFire, etc. Need to capitalize the first letter.
+        const upperTypeStr: string = guy.type.charAt(0).toUpperCase() + guy.type.slice(1);
+        SFX.play(`shoot${upperTypeStr}`);
 
         this.level.addEntity(bullet);
 
@@ -333,10 +335,11 @@ export class Player extends RunningEntity {
         switch (guy.type) {
             case 'normal':
                 this.dy = Math.min(this.dy, 0);
-                SFX.play('shoot');
+                SFX.play('airStall');
                 break;
             case 'fire':
                 // Straight up double jump.
+                SFX.play('doubleJump');
                 this.jump();
                 break;
         }
