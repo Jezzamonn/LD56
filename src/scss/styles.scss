@@ -6,6 +6,18 @@ html, body {
     color: white;
 }
 
+@font-face {
+    font-family: 'Softsquare';
+    src: url('../font/ChevyRay - Softsquare Mono.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+html, body {
+    font-family: 'Softsquare', sans-serif;
+}
+
+
 body {
     --scale: 1;
     --pageHeight: 100vh;
@@ -21,53 +33,14 @@ body {
     overflow: hidden;
 }
 
-.touch-buttons {
+.guy-totals {
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
-    width: 100%;
-}
+    background-color: rgba(0, 0, 0, 0.2);
 
-.touch-button-image {
-    width: 100%;
-
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-}
-
-.touch-button {
-    position: absolute;
-    width: 20vmin;
-    height: 20vmin;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    border: none;
-    padding: 0;
-    margin: 0;
-    text-decoration: none;
-    background: none;
-    color: inherit;
-}
-
-.touch-button-left-right {
-    bottom: 0;
-    left: 0;
-    width: 40vmin;
-}
-
-.touch-button-jump {
-    bottom: 0;
-    right: 0;
-}
-
-.touch-button-restart {
-    top: 0;
-    right: 0;
+    padding: calc(3px * var(--scale));
+    font-size: calc(8px * var(--scale));
 }
 
 .hidden {

@@ -202,7 +202,8 @@ export class Player extends RunningEntity {
         }
     }
 
-    addGuy(guy: Guy) {
+    addGuy(guy: Guy): boolean {
+        const wasAlreadyAvailable = this.availableGuysSet.has(guy);
         if (!this.availableGuysSet.has(guy)) {
             this.availableGuysSet.add(guy);
             this.availableGuys.push(guy);
@@ -211,6 +212,8 @@ export class Player extends RunningEntity {
             this.knownGuysSet.add(guy);
             this.knownGuys.push(guy);
         }
+
+        return !wasAlreadyAvailable;
     }
 
     popAvailableGuy(): Guy | undefined {

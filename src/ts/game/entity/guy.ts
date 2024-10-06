@@ -87,13 +87,12 @@ export class Guy extends RunningEntity {
     checkForPlayer() {
         // Check if we're near the player.
         if (!this.exhausted && this.level.player.isTouchingEntity(this)) {
-            const addedBefore = this.level.player.availableGuysSet.has(this);
             // Add to available and known guys, if not already there.
-            this.level.player.addGuy(this);
+            const wasAdded = this.level.player.addGuy(this);
             // And start following the player.
             this.followingPlayer = true;
 
-            if (!addedBefore) {
+            if (wasAdded) {
                 this.smallJump();
             }
         }

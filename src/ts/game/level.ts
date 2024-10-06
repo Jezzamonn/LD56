@@ -13,6 +13,7 @@ import { LevelInfo } from './levels';
 import { BaseTile } from './tile/base-layer';
 import { ObjectTile } from './tile/object-layer';
 import { Tiles } from './tile/tiles';
+import { GuyTotals } from './ui/guy-totals';
 
 // Contains everything in one level, including the tiles and the entities.
 export class Level {
@@ -242,6 +243,8 @@ export class Level {
         this.background.update(dt);
         this.tiles.update(dt);
         this.camera.update(dt);
+
+        GuyTotals.updateGuyTotals(this.player.availableGuys, this.player.knownGuys);
     }
 
     render(context: CanvasRenderingContext2D) {
