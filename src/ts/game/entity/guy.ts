@@ -41,7 +41,7 @@ const dialog = [
     `"Hey! I'm here!"`,
     `"Ahoy, matey!! Hehe"`,
     `"Hiii!!"`,
-    `"Pressing Z in the air will use our secondary ability!"`,
+    `"Pressing Z in the air will use our secondary ability! Press shift to switch between abilities!"`,
     `"Gray guys stall you in the air."`,
 ];
 let dialogIndex = 0;
