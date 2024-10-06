@@ -88,7 +88,7 @@ export class Guy extends RunningEntity {
 
     checkForPlayer() {
         // Check if we're near the player.
-        if (!this.exhausted && this.level.player.isTouchingEntity(this)) {
+        if (!this.exhausted && this.isCloseEnoughToStop()) {
             // Add to available and known guys, if not already there.
             const wasAdded = this.level.player.addGuy(this);
             // And start following the player.
@@ -179,6 +179,12 @@ export class Guy extends RunningEntity {
         const yDiff = Math.abs(this.maxY - this.level.player.maxY);
         const xDiff = Math.abs(this.midX - this.level.player.midX);
         return xDiff < 3 * TILE_SIZE && yDiff < 3 * TILE_SIZE;
+    }
+
+    isCloseEnoughToStop() {
+        const yDiff = Math.abs(this.maxY - this.level.player.maxY);
+        const xDiff = Math.abs(this.midX - this.level.player.midX);
+        return xDiff < this.closeness && yDiff < physFromPx(8);
     }
 
     smallJump() {

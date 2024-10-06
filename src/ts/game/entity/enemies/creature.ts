@@ -62,7 +62,7 @@ export class Creature extends RunningEntity {
             this.runSpeed = 0.7 * PHYSICS_SCALE * FPS;
         }
 
-        if (lastColorPart[4] === '1') {
+        if (lastColorPart[0] === '1') {
             this.type = GuyType.Fire;
             this.health = 3;
             this.runSpeed *= 1.2;

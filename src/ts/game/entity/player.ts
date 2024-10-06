@@ -201,7 +201,7 @@ export class Player extends RunningEntity {
         if (this.knownGuys.length == 0) {
             guy.type = GuyType.Normal;
             guy.isUnique = true;
-        } else if (this.knownGuys.length < 3) {
+        } else if (this.knownGuys.length < 10) {
             guy.type = GuyType.Normal;
         }
         else {
