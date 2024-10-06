@@ -229,7 +229,7 @@ export class Level {
 
     update(dt: number) {
         // DEBUG: Run the game faster to test it faster.
-        dt *= 1.5;
+        // dt *= 2;
 
         for (const entity of this.entities) {
             if (!entity.done) {

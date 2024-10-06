@@ -38,7 +38,7 @@ export class Player extends RunningEntity {
     // Used to track Coyote Time.
     onGroundCount = 0;
 
-    releasedJumpKeyInAir = false;
+    needToReleaseJumpKeyToDoubleJump = true;
 
     bulletCooldown = 0.15;
     bulletCooldownCount = 0;
@@ -65,6 +65,7 @@ export class Player extends RunningEntity {
 
     jump() {
         this.dy = -this.jumpSpeed;
+        this.needToReleaseJumpKeyToDoubleJump = true;
         SFX.play('jump');
         // Reset coyote time variables.
         this.onGroundCount = 0;
@@ -112,14 +113,14 @@ export class Player extends RunningEntity {
 
         // Need to release the jump key before jumping again.
         if (this.onGroundCount > 0) {
-            this.releasedJumpKeyInAir = false;
+            this.needToReleaseJumpKeyToDoubleJump = true;
         } else if (!keys.anyIsPressed(JUMP_KEYS)) {
-            this.releasedJumpKeyInAir = true;
+            this.needToReleaseJumpKeyToDoubleJump = false;
         }
 
         if (keys.anyWasPressedThisFrame(JUMP_KEYS) && this.onGroundCount > 0) {
             this.jump();
-        } else if (keys.anyIsPressed(JUMP_KEYS) && this.releasedJumpKeyInAir) {
+        } else if (keys.anyIsPressed(JUMP_KEYS) && !this.needToReleaseJumpKeyToDoubleJump) {
             // Use 'bullets' as double jumps.
             if (this.bulletCooldownCount <= 0) {
                 this.bulletDoubleJump();
@@ -185,7 +186,14 @@ export class Player extends RunningEntity {
         const guy = new Guy(this.level);
         guy.midX = this.midX;
         guy.maxY = this.minY;
-        guy.type = this.knownGuys.length == 0 ? GuyType.Unique : GuyType.Normal;
+        if (this.knownGuys.length == 0) {
+            guy.type = GuyType.Unique;
+        } else if (this.knownGuys.length < 3) {
+            guy.type = GuyType.Normal;
+        }
+        else {
+            guy.type = GuyType.Fire;
+        }
         this.level.addEntity(guy);
     }
 
@@ -223,6 +231,10 @@ export class Player extends RunningEntity {
             guy.exhausted = true;
         }
         return guy;
+    }
+
+    nextAvailableGuy(): Guy | undefined {
+        return this.availableGuys[0];
     }
 
     fireBullet() {
@@ -290,8 +302,13 @@ export class Player extends RunningEntity {
                 break;
             case 'fire':
                 // Straight up double jump.
-                this.dy = -this.jumpSpeed;
+                this.jump();
                 break;
+        }
+
+        const nextGuy = this.nextAvailableGuy();
+        if (nextGuy?.type === GuyType.Fire) {
+            this.needToReleaseJumpKeyToDoubleJump = true;
         }
 
         // // TODO: This feels like it needs to be balanced more... Hm.
