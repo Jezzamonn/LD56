@@ -8,6 +8,7 @@ import {
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { lerp } from '../../lib/util';
+import { SFX } from '../sfx/sfx';
 import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
@@ -31,7 +32,7 @@ const uniqueSet = new Set(['unique']);
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
-    jumpSpeed = 3.3 * PHYSICS_SCALE * FPS;
+    jumpSpeed = 4 * PHYSICS_SCALE * FPS;
     smallJumpSpeed = 1 * PHYSICS_SCALE * FPS;
     groundAccel = (0.35 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
@@ -90,12 +91,19 @@ export class Guy extends RunningEntity {
         // Check if we're near the player.
         if (!this.exhausted && this.isCloseEnoughToStop()) {
             // Add to available and known guys, if not already there.
-            const wasAdded = this.level.player.addGuy(this);
+            const [wasAdded, wasFirstAdded] = this.level.player.addGuy(this);
             // And start following the player.
             this.followingPlayer = true;
 
             if (wasAdded) {
                 this.smallJump();
+            }
+
+            if (wasFirstAdded) {
+                SFX.play('pickup');
+            }
+            else if (wasAdded) {
+                SFX.play('pickupAgain');
             }
         }
     }

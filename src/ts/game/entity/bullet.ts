@@ -2,6 +2,7 @@ import { Dir, FacingDir, Point } from "../../common";
 import { FPS, physFromPx, PHYSICS_SCALE, rng } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
 import { lerp } from "../../lib/util";
+import { SFX } from "../sfx/sfx";
 import { ObjectTile } from "../tile/object-layer";
 import { PhysicTile } from "../tile/tiles";
 import { Column } from "./column";
@@ -77,6 +78,7 @@ export class Bullet extends Entity {
         const tile = this.level.tiles.objectLayer.getTileAtCoord(point);
         if (tile === ObjectTile.Destroyable) {
             this.level.tiles.objectLayer.floodFillTileAtCoord(point, ObjectTile.Destroyable, ObjectTile.Empty);
+            SFX.play('explode');
         }
     }
 
@@ -95,6 +97,8 @@ export class Bullet extends Entity {
             this.guy.done = false;
             this.level.addEntity(this.guy);
         }
+
+        SFX.play('hurt');
 
         this.done = true;
     }

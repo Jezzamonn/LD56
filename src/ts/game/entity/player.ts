@@ -233,8 +233,9 @@ export class Player extends RunningEntity {
         }
     }
 
-    addGuy(guy: Guy): boolean {
+    addGuy(guy: Guy): [boolean, boolean] {
         const wasAlreadyAvailable = this.availableGuysSet.has(guy);
+        const wasAlreadyKnown = this.knownGuysSet.has(guy);
         if (!this.availableGuysSet.has(guy)) {
             this.availableGuysSet.add(guy);
             this.availableGuys.push(guy);
@@ -248,7 +249,7 @@ export class Player extends RunningEntity {
             this.foundTypes.push(guy.type);
         }
 
-        return !wasAlreadyAvailable;
+        return [!wasAlreadyAvailable, !wasAlreadyKnown];
     }
 
     popAvailableGuy(): Guy | undefined {
@@ -381,6 +382,7 @@ export class Player extends RunningEntity {
         }
         this.isDead = true;
         this.animCount = 0;
+        SFX.play('hurt');
     }
 
     limitFallSpeed(dt: number): void {
