@@ -65,6 +65,9 @@ export class Game {
 
         this.startLevel(0);
 
+        // TODO: Set this at a more opportune time.
+        Sounds.setSong('exploring');
+
         if (DEBUG) {
             this.loadPlayerPosition();
         }
@@ -242,11 +245,16 @@ export class Game {
     static async preload() {
         const sprites = ['player', 'lilguy', 'creature', 'torch', 'column'];
         const spritePromises = sprites.map((name) => Aseprite.loadImage({ name, basePath: 'sprites' }));
+
+        const music = ['exploring'];
+        const musicPromises = music.map((name) => Sounds.loadSound({name, path: 'music/'}));
+
         await Promise.all([
             Levels.preload(),
             Tiles.preload(),
             Background.preload(),
             ...spritePromises,
+            ...musicPromises,
         ]);
         SFX.preload();
     }
