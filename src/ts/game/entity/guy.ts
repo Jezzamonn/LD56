@@ -12,7 +12,17 @@ import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
 
-type GuyType = 'unique' | 'normal' | 'fire';
+export type GuyType = 'unique' | 'normal' | 'fire';
+
+export namespace GuyType {
+    const types = ['unique', 'normal', 'fire'];
+
+    export const sets = {};
+
+    for (const type of types) {
+        sets[type] = new Set([type]);
+    }
+}
 
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
@@ -39,19 +49,9 @@ export class Guy extends RunningEntity {
 
     closeness = lerp(physFromPx(5), physFromPx(15), rng());
 
-    internalType: GuyType = 'normal';
-    typeSet = new Set([this.type]);
-
     followingPlayer = false;
 
-    set type(type: GuyType) {
-        this.internalType = type;
-        this.typeSet = new Set([type]);
-    }
-
-    get type() {
-        return this.internalType;
-    }
+    type: GuyType = 'normal';
 
     update(dt: number): void {
         this.animCount += dt;
@@ -82,8 +82,7 @@ export class Guy extends RunningEntity {
 
     checkForPlayer() {
         // Check if we're near the player.
-        // TODO: This could be make more lenient. Maybe check for exhausted state too.
-        if (!this.exhausted && this.level.player.isTouchingEntity(this) && this.level.player.isStanding()) {
+        if (!this.exhausted && this.level.player.isTouchingEntity(this)) {
             // Add to available and known guys, if not already there.
             this.level.player.addGuy(this);
             // And start following the player.
@@ -141,7 +140,7 @@ export class Guy extends RunningEntity {
     }
 
     maybeSmallJump() {
-        if (rng() < 0.03) {
+        if (this.isStanding() && rng() < 0.03) {
             this.smallJump();
         }
     }
@@ -222,11 +221,7 @@ export class Guy extends RunningEntity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.facingDir === FacingDir.Right,
             loop: true,
-            layers: this.typeSet,
+            layers: GuyType.sets[this.type],
         });
-    }
-
-    static async preload() {
-        await Aseprite.loadImage({ name: 'lilguy', basePath: 'sprites' });
     }
 }

@@ -8,16 +8,16 @@ import {
     PHYSICS_SCALE,
     RIGHT_KEYS,
     SHOOT_KEYS,
-    UP_KEYS
+    UP_KEYS,
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
-import { NullKeys } from '../../lib/keys';
 import { SFX } from '../sfx';
-import { ObjectTile } from '../tile/object-layer';
 import { PhysicTile } from '../tile/tiles';
 import { Bullet } from './bullet';
+import { Creature } from './enemies/creature';
 import { Guy } from './guy';
 import { RunningEntity } from './running-entity';
+import { Torch } from './torch';
 
 const imageName = 'player';
 
@@ -35,14 +35,8 @@ export class Player extends RunningEntity {
     groundAccel = (0.25 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
 
-    controlledByPlayer = true;
-
     // Used to track Coyote Time.
     onGroundCount = 0;
-    // onLeftWallCount = 0;
-    // onRightWallCount = 0;
-
-    // bufferedJumpCount = 0;
 
     releasedJumpKeyInAir = false;
 
@@ -60,6 +54,8 @@ export class Player extends RunningEntity {
     knownGuys: Guy[] = [];
     knownGuysSet = new Set<Guy>();
 
+    isDead = false;
+
     cameraFocus(): Point {
         // TODO: This made people dizzy, should adjust it / change the speed the camera moves.
         const facingMult = this.facingDir == FacingDir.Right ? 1 : -1;
@@ -72,9 +68,6 @@ export class Player extends RunningEntity {
         SFX.play('jump');
         // Reset coyote time variables.
         this.onGroundCount = 0;
-        // this.onLeftWallCount = 0;
-        // this.onRightWallCount = 0;
-        // this.bufferedJumpCount = 0;
     }
 
     update(dt: number) {
@@ -83,15 +76,6 @@ export class Player extends RunningEntity {
         if (this.onGroundCount > 0) {
             this.onGroundCount -= dt;
         }
-        // if (this.onLeftWallCount > 0) {
-        //     this.onLeftWallCount -= dt;
-        // }
-        // if (this.onRightWallCount > 0) {
-        //     this.onRightWallCount -= dt;
-        // }
-        // if (this.bufferedJumpCount > 0) {
-        //     this.bufferedJumpCount -= dt;
-        // }
         if (this.bulletCooldownCount > 0) {
             this.bulletCooldownCount -= dt;
         }
@@ -99,18 +83,27 @@ export class Player extends RunningEntity {
         if (this.isStanding()) {
             this.onGroundCount = COYOTE_TIME_SECS;
         }
-        // if (this.isAgainstLeftWall()) {
-        //     this.onLeftWallCount = COYOTE_TIME_SECS;
-        // }
-        // if (this.isAgainstRightWall()) {
-        //     this.onRightWallCount = COYOTE_TIME_SECS;
-        // }
 
         // TODO: Maybe checking what animation frame we're add and playing a sound effect (e.g. if it's a footstep frame.)
 
-        let keys = this.controlledByPlayer
-            ? this.level.game.keys
-            : new NullKeys();
+        this.checkEnemyCollision();
+
+        this.handlePreMovementInput(dt);
+
+        this.limitFallSpeed(dt);
+        this.applyGravity(dt);
+        this.move(dt);
+
+        this.handlePostMovementInput(dt);
+    }
+
+    handlePreMovementInput(dt: number) {
+        const keys = this.level.game.keys;
+
+        if (this.isDead) {
+            this.dampX(dt);
+            return;
+        }
 
         const upPressed = keys.anyIsPressed(UP_KEYS);
         const downPressed = keys.anyIsPressed(DOWN_KEYS);
@@ -120,15 +113,13 @@ export class Player extends RunningEntity {
         // Need to release the jump key before jumping again.
         if (this.onGroundCount > 0) {
             this.releasedJumpKeyInAir = false;
-        }
-        else if (!keys.anyIsPressed(JUMP_KEYS)) {
+        } else if (!keys.anyIsPressed(JUMP_KEYS)) {
             this.releasedJumpKeyInAir = true;
         }
 
         if (keys.anyWasPressedThisFrame(JUMP_KEYS) && this.onGroundCount > 0) {
             this.jump();
-        }
-        else if (keys.anyIsPressed(JUMP_KEYS) && this.releasedJumpKeyInAir) {
+        } else if (keys.anyIsPressed(JUMP_KEYS) && this.releasedJumpKeyInAir) {
             // Use 'bullets' as double jumps.
             if (this.bulletCooldownCount <= 0) {
                 this.bulletDoubleJump();
@@ -144,15 +135,10 @@ export class Player extends RunningEntity {
         } else {
             this.dampX(dt);
         }
+    }
 
-        this.limitFallSpeed(dt);
-        this.applyGravity(dt);
-        this.move(dt);
-
-        // Fire a bullet. After moving so that the facing direction is updated.
-        if (keys.anyIsPressed(SHOOT_KEYS) && this.bulletCooldownCount <= 0) {
-            this.fireBullet();
-        }
+    handlePostMovementInput(dt: number) {
+        const keys = this.level.game.keys;
 
         // Debug: Spawn a lil guy
         if (keys.wasPressedThisFrame('KeyG')) {
@@ -162,12 +148,37 @@ export class Player extends RunningEntity {
             this.bringBackAllGuys();
         }
 
-        // Checking for winning
-        if (
-            this.isTouchingTile(this.level.tiles.objectLayer, ObjectTile.Goal)
-        ) {
-            this.level.win();
+        if (this.isDead) {
+            if (keys.anyWasPressedThisFrame(JUMP_KEYS)) {
+                this.respawn();
+            }
+            return;
         }
+
+        // Fire a bullet. After moving so that the facing direction is updated.
+        if (keys.anyIsPressed(SHOOT_KEYS) && this.bulletCooldownCount <= 0) {
+            this.fireBullet();
+        }
+    }
+
+    respawn() {
+        // Find a lit torch in the level, respawn there.
+        const torches = this.level.getEntities(Torch);
+        for (let torch of torches) {
+            if (torch.isActive) {
+                this.respawnAtTorch(torch);
+                return;
+            }
+        }
+        this.respawnAtTorch(torches[0]);
+    }
+
+    respawnAtTorch(torch: Torch) {
+        this.midX = torch.midX;
+        this.maxY = torch.maxY;
+        this.dx = 0;
+        this.dy = 0;
+        this.isDead = false;
     }
 
     spawnGuy() {
@@ -187,9 +198,8 @@ export class Player extends RunningEntity {
             guy.dx = 0;
             guy.dy = 0;
             this.level.addEntity(guy);
+            this.addGuy(guy);
         }
-        this.availableGuys = [...this.knownGuys];
-        this.availableGuysSet = new Set(this.knownGuys);
     }
 
     addGuy(guy: Guy) {
@@ -226,7 +236,9 @@ export class Player extends RunningEntity {
             bullet.midY = this.midY + physFromPx(3);
             bullet.setDirection(Dir.Down);
         } else {
-            bullet.setDirection(this.facingDir == FacingDir.Right ? Dir.Right : Dir.Left);
+            bullet.setDirection(
+                this.facingDir == FacingDir.Right ? Dir.Right : Dir.Left
+            );
             bullet.midX = this.midX + facingDirMult * physFromPx(12);
             bullet.midY = this.midY + physFromPx(1);
         }
@@ -248,6 +260,7 @@ export class Player extends RunningEntity {
         const guy = this.availableGuys.shift();
         if (guy) {
             this.availableGuysSet.delete(guy);
+            guy.exhausted = true;
         }
         return guy;
     }
@@ -276,6 +289,25 @@ export class Player extends RunningEntity {
         this.dy = Math.min(this.dy, 0);
 
         this.bulletCooldownCount = this.bulletCooldown;
+    }
+
+    checkEnemyCollision() {
+        for (let entity of this.level.entities) {
+            if (entity instanceof Creature) {
+                if (this.isTouchingEntity(entity)) {
+                    this.hurt();
+                    break;
+                }
+            }
+        }
+    }
+
+    hurt() {
+        if (this.isDead) {
+            return;
+        }
+        this.isDead = true;
+        this.animCount = 0;
     }
 
     limitFallSpeed(dt: number): void {
@@ -323,7 +355,10 @@ export class Player extends RunningEntity {
         let animName = 'idle';
         let loop = true;
 
-        if (!this.isStanding()) {
+        if (this.isDead) {
+            animName = 'hurt';
+            loop = false;
+        } else if (!this.isStanding()) {
             if (this.dy > 0 && this.isAgainstLeftWall()) {
                 animName = this.withLookSuffix('wall-slide');
             } else if (this.dy > 0 && this.isAgainstRightWall()) {
@@ -364,9 +399,5 @@ export class Player extends RunningEntity {
             flippedX: this.facingDir == FacingDir.Right,
             loop,
         });
-    }
-
-    static async preload() {
-        await Aseprite.loadImage({ name: imageName, basePath: 'sprites' });
     }
 }

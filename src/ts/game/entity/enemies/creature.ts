@@ -2,7 +2,7 @@ import { Dir, FacingDir } from '../../../common';
 import { FPS, physFromPx, PHYSICS_SCALE } from '../../../constants';
 import { Aseprite } from '../../../lib/aseprite';
 import { PhysicTile } from '../../tile/tiles';
-import { Guy } from '../guy';
+import { Guy, GuyType } from '../guy';
 import { RunningEntity } from '../running-entity';
 
 export enum CreatureBehavior {
@@ -27,6 +27,8 @@ export class Creature extends RunningEntity {
     behavior = CreatureBehavior.Running;
     startedRunning = false;
     distToAwaken = physFromPx(100);
+
+    type: GuyType = 'fire';
 
     update(dt: number): void {
         this.animCount += dt;
@@ -123,12 +125,12 @@ export class Creature extends RunningEntity {
         // Ooh yeah death animation would be good too.
 
         // Spawn a little guy! Actually lets add a few haha
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 1; i++) {
             const guy = new Guy(this.level);
             guy.midX = this.midX;
             guy.midY = this.midY;
             guy.randomKnockback();
-            guy.type = 'normal';
+            guy.type = this.type;
             this.level.addEntity(guy);
         }
 
@@ -158,10 +160,7 @@ export class Creature extends RunningEntity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.facingDir === FacingDir.Right,
             loop: true,
+            layers: GuyType.sets[this.type],
         });
-    }
-
-    static async preload() {
-        await Aseprite.loadImage({ name: 'creature', basePath: 'sprites' });
     }
 }

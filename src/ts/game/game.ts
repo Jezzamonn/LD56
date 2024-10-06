@@ -11,9 +11,6 @@ import { ComboKeys, KeyboardKeys, NullKeys, RegularKeys } from '../lib/keys';
 import { Sounds } from '../lib/sounds';
 import { Background } from './background';
 import { centerCanvas } from './camera';
-import { Creature } from './entity/enemies/creature';
-import { Guy } from './entity/guy';
-import { Player } from './entity/player';
 import { Level } from './level';
 import { Levels, LEVELS } from './levels';
 import { SFX } from './sfx';
@@ -243,13 +240,13 @@ export class Game {
     }
 
     static async preload() {
+        const sprites = ['player', 'lilguy', 'creature', 'torch'];
+        const spritePromises = sprites.map((name) => Aseprite.loadImage({ name, basePath: 'sprites' }));
         await Promise.all([
             Levels.preload(),
             Tiles.preload(),
-            Player.preload(),
             Background.preload(),
-            Guy.preload(),
-            Creature.preload(),
+            ...spritePromises,
         ]);
         SFX.preload();
     }

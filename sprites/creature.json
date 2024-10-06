@@ -1,56 +1,110 @@
 { "frames": [
    {
-    "filename": "creature (Layer 1) 0.aseprite",
-    "frame": { "x": 1, "y": 1, "w": 17, "h": 16 },
+    "filename": "creature (normal) 0.aseprite",
+    "frame": { "x": 1, "y": 1, "w": 17, "h": 20 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 16 },
-    "sourceSize": { "w": 17, "h": 16 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
     "duration": 100
    },
    {
-    "filename": "creature (Layer 1) 1.aseprite",
-    "frame": { "x": 1, "y": 18, "w": 17, "h": 16 },
+    "filename": "creature (normal) 1.aseprite",
+    "frame": { "x": 1, "y": 22, "w": 17, "h": 20 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 16 },
-    "sourceSize": { "w": 17, "h": 16 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
     "duration": 200
    },
    {
-    "filename": "creature (Layer 1) 2.aseprite",
-    "frame": { "x": 1, "y": 35, "w": 17, "h": 16 },
+    "filename": "creature (normal) 2.aseprite",
+    "frame": { "x": 1, "y": 43, "w": 17, "h": 20 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 16 },
-    "sourceSize": { "w": 17, "h": 16 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
     "duration": 200
    },
    {
-    "filename": "creature (Layer 1) 3.aseprite",
-    "frame": { "x": 19, "y": 1, "w": 17, "h": 16 },
+    "filename": "creature (normal) 3.aseprite",
+    "frame": { "x": 19, "y": 1, "w": 17, "h": 20 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 16 },
-    "sourceSize": { "w": 17, "h": 16 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
     "duration": 200
    },
    {
-    "filename": "creature (Layer 1) 4.aseprite",
-    "frame": { "x": 19, "y": 18, "w": 17, "h": 16 },
+    "filename": "creature (normal) 4.aseprite",
+    "frame": { "x": 19, "y": 22, "w": 17, "h": 20 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 16 },
-    "sourceSize": { "w": 17, "h": 16 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
     "duration": 200
    },
    {
-    "filename": "creature (Layer 1) 5.aseprite",
-    "frame": { "x": 19, "y": 35, "w": 17, "h": 16 },
+    "filename": "creature (normal) 5.aseprite",
+    "frame": { "x": 19, "y": 43, "w": 17, "h": 20 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 16 },
-    "sourceSize": { "w": 17, "h": 16 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
+    "duration": 200
+   },
+   {
+    "filename": "creature (fire) 0.aseprite",
+    "frame": { "x": 37, "y": 1, "w": 17, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
+    "duration": 100
+   },
+   {
+    "filename": "creature (fire) 1.aseprite",
+    "frame": { "x": 37, "y": 22, "w": 17, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
+    "duration": 200
+   },
+   {
+    "filename": "creature (fire) 2.aseprite",
+    "frame": { "x": 37, "y": 43, "w": 17, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
+    "duration": 200
+   },
+   {
+    "filename": "creature (fire) 3.aseprite",
+    "frame": { "x": 55, "y": 1, "w": 17, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
+    "duration": 200
+   },
+   {
+    "filename": "creature (fire) 4.aseprite",
+    "frame": { "x": 55, "y": 22, "w": 17, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
+    "duration": 200
+   },
+   {
+    "filename": "creature (fire) 5.aseprite",
+    "frame": { "x": 55, "y": 43, "w": 17, "h": 20 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 17, "h": 20 },
+    "sourceSize": { "w": 17, "h": 20 },
     "duration": 200
    }
  ],
@@ -59,7 +113,7 @@
   "version": "1.3.7-x64",
   "image": "creature.png",
   "format": "RGBA8888",
-  "size": { "w": 37, "h": 66 },
+  "size": { "w": 73, "h": 66 },
   "scale": "1",
   "frameTags": [
    { "name": "idle", "from": 0, "to": 0, "direction": "forward", "color": "#000000ff" },
@@ -68,7 +122,8 @@
    { "name": "hurt", "from": 5, "to": 5, "direction": "forward", "color": "#000000ff" }
   ],
   "layers": [
-   { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
+   { "name": "normal", "opacity": 255, "blendMode": "normal" },
+   { "name": "fire", "opacity": 255, "blendMode": "normal" }
   ]
  }
 }

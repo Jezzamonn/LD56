@@ -5,7 +5,7 @@ import { lerp } from "../../lib/util";
 import { ObjectTile } from "../tile/object-layer";
 import { Creature } from "./enemies/creature";
 import { Entity } from "./entity";
-import { Guy } from "./guy";
+import { Guy, GuyType } from "./guy";
 
 const SPEED = 6 * PHYSICS_SCALE * FPS;
 
@@ -134,7 +134,7 @@ export class Bullet extends Entity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.dx > 0,
             loop: true,
-            layers: this.guy.typeSet,
+            layers: GuyType.sets[this.guy.type],
         });
     }
 }
