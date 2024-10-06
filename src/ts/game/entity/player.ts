@@ -321,9 +321,12 @@ export class Player extends RunningEntity {
             guy.maybeStopFollowingPlayer();
             guy.midX = this.midX;
             guy.maxY = this.midY + 1;
-            guy.dy = -0.5 * this.jumpSpeed;
+            guy.dx = this.dx;
+            // Fire downwards?
+            guy.dy = 0.5 * this.jumpSpeed;
+            // guy.dy = -0.5 * this.jumpSpeed;
             const facingDirMult = this.facingDir == FacingDir.Right ? 1 : -1;
-            guy.dx = -facingDirMult * 0.5 * this.runSpeed;
+            // guy.dx = -facingDirMult * 0.5 * this.runSpeed;
         }
         else {
             // Removed. Sorry!
@@ -334,7 +337,11 @@ export class Player extends RunningEntity {
 
         switch (guy.type) {
             case 'normal':
-                this.dy = Math.min(this.dy, 0);
+                if (this.dy > 0) {
+                    this.dy = 0;
+                }
+                // Very small boost. Hopefully not too much.
+                this.dy -= 0.1 * PHYSICS_SCALE * FPS;
                 SFX.play('airStall');
                 break;
             case 'fire':
@@ -344,10 +351,9 @@ export class Player extends RunningEntity {
                 break;
         }
 
-        // const nextGuy = this.nextAvailableGuy();
-        // if (nextGuy?.type === GuyType.Fire) {
-        //     this.needToReleaseJumpKeyToDoubleJump = true;
-        // }
+        if (this.selectedGuyType === GuyType.Fire) {
+            this.needToReleaseJumpKeyToDoubleJump = true;
+        }
 
         // // TODO: This feels like it needs to be balanced more... Hm.
         // this.dy -= 0.23 * this.jumpSpeed;
