@@ -253,7 +253,10 @@ export class Player extends RunningEntity {
     }
 
     popAvailableGuy(): Guy | undefined {
-        let guyIndex = this.availableGuys.findIndex(g => g.type === this.selectedGuyType);
+        const guysOfType = this.availableGuys.filter(g => g.type === this.selectedGuyType);
+        const canUseUnique = guysOfType.length === 1;
+
+        let guyIndex = this.availableGuys.findIndex(g => g.type === this.selectedGuyType && (canUseUnique || !g.isUnique));
         if (guyIndex === -1) {
             return undefined;
         }
