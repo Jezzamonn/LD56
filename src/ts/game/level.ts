@@ -1,4 +1,4 @@
-import { Point } from '../common';
+import { FacingDir, Point } from '../common';
 import { DEBUG, TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
 import { Background } from './background';
@@ -10,6 +10,7 @@ import { Entity } from './entity/entity';
 import { Guy, GuyType } from './entity/guy';
 import { Player } from './entity/player';
 import { Torch } from './entity/torch';
+import { Waterfall } from './entity/waterfall';
 import { Game } from './game';
 import { LevelInfo } from './levels';
 import { BaseTile } from './tile/base-layer';
@@ -91,6 +92,7 @@ export class Level {
                     guy.maxY = basePos.y;
                     guy.type = GuyType.Normal;
                     guy.isUnique = true;
+                    guy.facingDir = FacingDir.Left;
                     this.immediatelyAddEntity(guy);
                 } else if (color === 'ffff00' || color === 'ffff99') {
                     // Torches
@@ -137,6 +139,11 @@ export class Level {
                         allowGrow: false,
                     });
                     const column = new Column(this);
+                    column.midX = basePos.x;
+                    column.maxY = basePos.y;
+                    this.immediatelyAddEntity(column);
+                } else if (color === '0fffff') {
+                    const column = new Waterfall(this);
                     column.midX = basePos.x;
                     column.maxY = basePos.y;
                     this.immediatelyAddEntity(column);

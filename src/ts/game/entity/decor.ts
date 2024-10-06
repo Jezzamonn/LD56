@@ -12,8 +12,6 @@ export class Decor extends Entity {
     frame = 0;
 
     render(context: CanvasRenderingContext2D) {
-        super.render(context);
-
         Aseprite.drawSprite({
             context,
             image: 'grass',
@@ -26,7 +24,7 @@ export class Decor extends Entity {
 
     static addDecorToLevel(level: Level) {
         // Use a new RNG so it's consistent.
-        const rng = seededRandom('gjskljkljf');
+        const rng = seededRandom('gjskljkdljf');
 
         for (
             let x = level.tiles.baseLayer.minX;
