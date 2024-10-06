@@ -88,6 +88,29 @@ body {
     text-align: center;
 }
 
+.notification-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+.notification {
+    position: absolute;
+    bottom: -100%;
+    left: 0;
+    transition: all 0.5s;
+
+    font-size: calc(4px * var(--scale));
+    padding: calc(2px * var(--scale));
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.shown-notification {
+    bottom: 0;
+}
+
 .hidden {
     display: none;
 }

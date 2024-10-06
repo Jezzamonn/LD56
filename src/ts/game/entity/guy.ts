@@ -9,6 +9,7 @@ import {
 import { Aseprite } from '../../lib/aseprite';
 import { lerp } from '../../lib/util';
 import { SFX } from '../sfx/sfx';
+import { Notifications } from '../ui/notification';
 import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
@@ -28,6 +29,28 @@ export namespace GuyType {
     }
 }
 const uniqueSet = new Set(['unique']);
+
+const dialog = [
+    `You found a tiny creature! "Hi, I'm greg! It's nice to meet you! Please don't press the X button."`,
+    `"Hi! Hello!"`,
+    `"Hey! I'm here!"`,
+    `"Hi, my name is Samuel. My friends call me Sam."`,
+    `"My name is Genevieve. My hobbies include hanging by the pool, and tax evasion."`,
+    `"Hi! Hello!"`,
+    `"Hello there, friend!"`,
+    `"Hey! I'm here!"`,
+    `"Ahoy, matey!! Hehe"`,
+    `"Hiii!!"`,
+];
+let dialogIndex = 0;
+function getDialog(): string {
+    const nextDialog = dialog[dialogIndex];
+    dialogIndex++;
+    if (dialogIndex >= dialog.length) {
+        dialogIndex = 5;
+    }
+    return nextDialog;
+}
 
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
@@ -101,6 +124,7 @@ export class Guy extends RunningEntity {
 
             if (wasFirstAdded) {
                 SFX.play('pickup');
+                Notifications.addNotification(getDialog());
             }
             else if (wasAdded) {
                 SFX.play('pickupAgain');

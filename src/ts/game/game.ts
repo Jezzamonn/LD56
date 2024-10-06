@@ -17,6 +17,7 @@ import { Level } from './level';
 import { Levels, LEVELS } from './levels';
 import { SFX } from './sfx/sfx';
 import { Tiles } from './tile/tiles';
+import { Notifications } from './ui/notification';
 
 export class Game {
     canvas: HTMLCanvasElement;
@@ -80,6 +81,8 @@ export class Game {
         // TODO: Support touch keys again.
         this.keys = new ComboKeys(new KeyboardKeys());
         this.keys.setUp();
+
+        Notifications.addNotification('Use the arrow keys to move, and Z to jump.');
     }
 
     nextLevel() {
@@ -281,6 +284,7 @@ export class Game {
     }
 
     *showTitleGenerator() {
+        Notifications.clear();
         yield;
         yield;
         this.slowMoFactor = 0;
