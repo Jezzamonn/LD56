@@ -37,7 +37,10 @@ export class Torch extends Entity {
         if (this.isTouchingEntity(this.level.player)) {
             if (this.touchingPlayerCount <= 0) {
                 this.activate();
-                this.guysToBringBack = this.level.player.knownGuys.slice();
+                if (this.visible) {
+                    // TODO: Add health back to all the enemies?
+                    this.guysToBringBack = this.level.player.knownGuys.slice();
+                }
             }
             this.touchingPlayerCount = Torch.touchingPlayerCooldown;
         }

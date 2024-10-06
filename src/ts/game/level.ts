@@ -1,5 +1,5 @@
 import { FacingDir, Point } from '../common';
-import { rng, TILE_SIZE_PX } from '../constants';
+import { TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
 import { Background } from './background';
 import { FocusCamera } from './camera';
@@ -79,13 +79,6 @@ export class Level {
                         BaseTile.Background,
                         { allowGrow: false }
                     );
-                } else if (color === 'ffff00') {
-                    // Spawn the lil guy.
-                    const guy = new Guy(this);
-                    guy.midX = basePos.x;
-                    guy.maxY = basePos.y;
-                    guy.type = GuyType.Unique;
-                    this.immediatelyAddEntity(guy);
                 } else if (color === 'ff00ff') {
                     this.start = basePos;
                     this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Spawn, {
@@ -94,6 +87,22 @@ export class Level {
                     this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
                         allowGrow: false,
                     });
+                } else if (color === 'ff01ff') {
+                    // Spawn the lil guy.
+                    const guy = new Guy(this);
+                    guy.midX = basePos.x;
+                    guy.maxY = basePos.y;
+                    guy.type = GuyType.Unique;
+                    this.immediatelyAddEntity(guy);
+                } else if (color === 'ffff00' || color === 'ffff99') {
+                    // Torches
+                    const torch = new Torch(this);
+                    torch.midX = basePos.x;
+                    torch.maxY = basePos.y;
+                    if (color === 'ffff99') {
+                        torch.visible = false;
+                    }
+                    this.immediatelyAddEntity(torch);
                 } else if (color.slice(0, 5) === 'ff000') {
                     const enemy = new Creature(this);
                     enemy.midX = basePos.x;
@@ -140,31 +149,31 @@ export class Level {
 
         this.spawnPlayer();
 
-        // Spawn some enemies to test things.
-        const spawnPositions: Point[] = [];
-        for (let x = this.tiles.baseLayer.minX; x <= this.tiles.baseLayer.maxX; x++) {
-            for (let y = this.tiles.baseLayer.minY; y <= this.tiles.baseLayer.maxY - 1; y++) {
-                const tile = this.tiles.baseLayer.getTile({ x, y });
-                const below = this.tiles.baseLayer.getTile({ x, y: y + 1 });
-                if (tile === BaseTile.Empty && below === BaseTile.Wall) {
-                    spawnPositions.push({ x, y });
-                }
-            }
-        }
-        for (let i = 0; i < spawnPositions.length / 20; i++) {
-            if (spawnPositions.length === 0) {
-                break;
-            }
-            const index = Math.floor(rng() * spawnPositions.length);
-            const pos = spawnPositions.splice(index, 1)[0];
-            const basePos = this.tiles.getTileCoord(pos, { x: 0.5, y: 1 });
+        // // Quick way to spawn things for testing.
+        // const spawnPositions: Point[] = [];
+        // for (let x = this.tiles.baseLayer.minX; x <= this.tiles.baseLayer.maxX; x++) {
+        //     for (let y = this.tiles.baseLayer.minY; y <= this.tiles.baseLayer.maxY - 1; y++) {
+        //         const tile = this.tiles.baseLayer.getTile({ x, y });
+        //         const below = this.tiles.baseLayer.getTile({ x, y: y + 1 });
+        //         if (tile === BaseTile.Empty && below === BaseTile.Wall) {
+        //             spawnPositions.push({ x, y });
+        //         }
+        //     }
+        // }
+        // for (let i = 0; i < spawnPositions.length / 20; i++) {
+        //     if (spawnPositions.length === 0) {
+        //         break;
+        //     }
+        //     const index = Math.floor(rng() * spawnPositions.length);
+        //     const pos = spawnPositions.splice(index, 1)[0];
+        //     const basePos = this.tiles.getTileCoord(pos, { x: 0.5, y: 1 });
 
-            const thing = new Torch(this);
-            thing.midX = basePos.x;
-            thing.maxY = basePos.y;
-            this.immediatelyAddEntity(thing);
-            console.log(`Spawned torch at ${pos.x}, ${pos.y}.`);
-        }
+        //     const thing = new Torch(this);
+        //     thing.midX = basePos.x;
+        //     thing.maxY = basePos.y;
+        //     this.immediatelyAddEntity(thing);
+        //     console.log(`Spawned torch at ${pos.x}, ${pos.y}.`);
+        // }
     }
 
     immediatelyAddEntity(entity: Entity) {

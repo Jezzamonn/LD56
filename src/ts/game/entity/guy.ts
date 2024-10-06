@@ -31,7 +31,7 @@ export namespace GuyType {
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
-    jumpSpeed = 3 * PHYSICS_SCALE * FPS;
+    jumpSpeed = 3.3 * PHYSICS_SCALE * FPS;
     smallJumpSpeed = 1 * PHYSICS_SCALE * FPS;
     groundAccel = (0.35 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
