@@ -3,6 +3,8 @@ import { FPS, physFromPx, PHYSICS_SCALE, rng } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
 import { lerp } from "../../lib/util";
 import { ObjectTile } from "../tile/object-layer";
+import { PhysicTile } from "../tile/tiles";
+import { Column } from "./column";
 import { Creature } from "./enemies/creature";
 import { Entity } from "./entity";
 import { Guy, GuyType } from "./guy";
@@ -107,10 +109,87 @@ export class Bullet extends Entity {
         }
     }
 
+    moveX(dt: number) {
+        this.x += this.dx * dt;
+
+        this.x = Math.round(this.x);
+
+        this.checkEnemyCollision();
+
+        if (this.dx < 0) {
+            if (
+                this.isTouchingTile(this.level.tiles, PhysicTile.Wall, {
+                    dir: Dir.Left,
+                })
+            ) {
+                this.onLeftCollision();
+            }
+        } else if (this.dx > 0) {
+            if (
+                this.isTouchingTile(this.level.tiles, PhysicTile.Wall, {
+                    dir: Dir.Right,
+                })
+            ) {
+                this.onRightCollision();
+            }
+        }
+    }
+
+    moveY(dt: number) {
+        const wasTouchingOneWayPlatform = this.isTouchingTile(
+            this.level.tiles,
+            PhysicTile.OneWayPlatform,
+            { dir: Dir.Down }
+        );
+        this.y += this.dy * dt;
+
+        this.y = Math.round(this.y);
+
+        this.checkEnemyCollision();
+
+        if (this.dy < 0) {
+            if (
+                this.isTouchingTile(this.level.tiles, PhysicTile.Wall, {
+                    dir: Dir.Up,
+                })
+            ) {
+                this.onUpCollision();
+            }
+        } else if (this.dy > 0) {
+            if (
+                this.isTouchingTile(this.level.tiles, PhysicTile.Wall, {
+                    dir: Dir.Down,
+                })
+            ) {
+                this.onDownCollision();
+            }
+            if (
+                !wasTouchingOneWayPlatform &&
+                this.isTouchingTile(
+                    this.level.tiles,
+                    PhysicTile.OneWayPlatform,
+                    { dir: Dir.Down }
+                )
+            ) {
+                this.onDownCollision();
+            }
+        }
+    }
+
     checkEnemyCollision() {
         if (this.done) {
             return;
         }
+
+        // Columns need to be handled before the done check because of the invisible wall.
+        for (const column of this.level.getEntities(Column)) {
+            if (this.isTouchingEntity(column)) {
+                column.registerHit(this.guy);
+                this.endBullet();
+                return;
+            }
+        }
+
         for (const entity of this.level.entities) {
             if (entity instanceof Creature) {
                 if (this.isTouchingEntity(entity)) {

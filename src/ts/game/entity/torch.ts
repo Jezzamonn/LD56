@@ -1,6 +1,7 @@
 import { FPS, physFromPx, PHYSICS_SCALE } from "../../constants";
 import { Aseprite } from "../../lib/aseprite";
 import { lerp } from "../../lib/util";
+import { Column } from "./column";
 import { Entity } from "./entity";
 import { Guy } from "./guy";
 
@@ -36,14 +37,21 @@ export class Torch extends Entity {
 
         if (this.isTouchingEntity(this.level.player)) {
             if (this.touchingPlayerCount <= 0) {
-                this.activate();
+                this.markActive();
                 if (this.visible) {
-                    // TODO: Add health back to all the enemies?
-                    this.guysToBringBack = this.level.player.knownGuys.slice();
+                    this.triggerRespawn();
                 }
             }
             this.touchingPlayerCount = Torch.touchingPlayerCooldown;
         }
+    }
+
+    triggerRespawn() {
+        const columns = this.level.getEntities(Column);
+        for (let column of columns) {
+            column.reset();
+        }
+        this.guysToBringBack = this.level.player.knownGuys.slice();
     }
 
     bringBackAGuy() {
@@ -85,7 +93,7 @@ export class Torch extends Entity {
         });
     }
 
-    activate() {
+    markActive() {
         // Disactivate all other torches.
         for (const entity of this.level.entities) {
             if (entity instanceof Torch) {

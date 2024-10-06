@@ -56,7 +56,7 @@ export class Tiles implements TileSource<PhysicTile> {
 
     getTile(p: Point): PhysicTile {
         const baseTile = this.baseLayer.getTile(p);
-        if (baseTile === BaseTile.Wall) {
+        if (baseTile === BaseTile.Wall || baseTile === BaseTile.InvisibleWall) {
             return PhysicTile.Wall;
         }
 

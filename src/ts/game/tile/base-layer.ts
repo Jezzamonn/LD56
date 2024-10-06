@@ -6,6 +6,7 @@ export enum BaseTile {
     Empty = 0,
     Wall = 1,
     Unknown = 3, // Used temporarily when creating the level. Will be filled in later.
+    InvisibleWall = 4,
 }
 
 export class BaseLayer extends TileLayer<BaseTile> {
@@ -61,14 +62,14 @@ export class BaseLayer extends TileLayer<BaseTile> {
                     const dxdyTile = this.getTile({ x: pos.x + dx, y: pos.y + dy });
                     let tilePos: Point = { x: 0, y: 0 };
 
-                    if (dxTile == BaseTile.Empty) {
+                    if (dxTile !== BaseTile.Wall) {
                         tilePos.x += 1;
                     }
-                    if (dyTile == BaseTile.Empty) {
+                    if (dyTile !== BaseTile.Wall) {
                         tilePos.y += 1;
                     }
                     // // Special case for the corner piece.
-                    if (dxTile == BaseTile.Wall && dyTile == BaseTile.Wall && dxdyTile != BaseTile.Wall) {
+                    if (dxTile === BaseTile.Wall && dyTile === BaseTile.Wall && dxdyTile !== BaseTile.Wall) {
                         tilePos.y += 2;
                     }
 

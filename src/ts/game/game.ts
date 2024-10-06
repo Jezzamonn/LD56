@@ -240,7 +240,7 @@ export class Game {
     }
 
     static async preload() {
-        const sprites = ['player', 'lilguy', 'creature', 'torch'];
+        const sprites = ['player', 'lilguy', 'creature', 'torch', 'column'];
         const spritePromises = sprites.map((name) => Aseprite.loadImage({ name, basePath: 'sprites' }));
         await Promise.all([
             Levels.preload(),

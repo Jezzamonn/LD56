@@ -3,6 +3,7 @@ import { TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
 import { Background } from './background';
 import { FocusCamera } from './camera';
+import { Column } from './entity/column';
 import { Creature } from './entity/enemies/creature';
 import { Entity } from './entity/entity';
 import { Guy, GuyType } from './entity/guy';
@@ -74,12 +75,6 @@ export class Level {
                     this.tiles.baseLayer.setTile({ x, y }, BaseTile.Wall, {
                         allowGrow: false,
                     });
-                } else if (color === 'aaaaaa') {
-                    this.tiles.baseLayer.setTile(
-                        { x, y },
-                        BaseTile.Background,
-                        { allowGrow: false }
-                    );
                 } else if (color === 'ff00ff') {
                     this.start = basePos;
                     this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Spawn, {
@@ -139,6 +134,17 @@ export class Level {
                     this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
                         allowGrow: false,
                     });
+                } else if (color === '0066ff') {
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.InvisibleWall, {
+                        allowGrow: false,
+                    });
+                    this.tiles.baseLayer.setTile({ x, y: y - 1 }, BaseTile.InvisibleWall, {
+                        allowGrow: false,
+                    });
+                    const column = new Column(this);
+                    column.midX = basePos.x;
+                    column.maxY = basePos.y;
+                    this.immediatelyAddEntity(column);
                 } else {
                     console.log(`Unknown color: ${color} at ${x}, ${y}.`);
                 }
@@ -222,6 +228,9 @@ export class Level {
     }
 
     update(dt: number) {
+        // DEBUG: Run the game faster to test it faster.
+        dt *= 1.5;
+
         for (const entity of this.entities) {
             if (!entity.done) {
                 entity.update(dt);

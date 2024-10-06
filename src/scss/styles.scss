@@ -6,17 +6,9 @@ html, body {
     color: white;
 }
 
-@font-face {
-    font-family: 'Softsquare';
-    src: url('../font/ChevyRay - Softsquare Mono.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
 html, body {
-    font-family: 'Softsquare', sans-serif;
+    font-family: 'ChevyRay - Softsquare Mono', sans-serif;
 }
-
 
 body {
     --scale: 1;
