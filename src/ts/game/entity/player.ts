@@ -52,8 +52,7 @@ export class Player extends RunningEntity {
     knownGuys: Guy[] = [];
     knownGuysSet = new Set<Guy>();
 
-    // TODO: Make this just start as normal.
-    foundTypes = [GuyType.Normal, GuyType.Fire];
+    foundTypes = [GuyType.Normal];
 
     selectedGuyType: GuyType = GuyType.Normal;
 
@@ -106,10 +105,9 @@ export class Player extends RunningEntity {
 
         // Can always switch guy
         if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
-            this.selectedGuyType =
-                this.selectedGuyType === GuyType.Normal
-                    ? GuyType.Fire
-                    : GuyType.Normal;
+            const curIndex = this.foundTypes.indexOf(this.selectedGuyType);
+            const nextIndex = (curIndex + 1) % this.foundTypes.length;
+            this.selectedGuyType = this.foundTypes[nextIndex];
             console.log(`Selected guy type: ${this.selectedGuyType}`);
         }
 
@@ -232,6 +230,10 @@ export class Player extends RunningEntity {
         if (!this.knownGuysSet.has(guy)) {
             this.knownGuysSet.add(guy);
             this.knownGuys.push(guy);
+        }
+
+        if (!this.foundTypes.includes(guy.type)) {
+            this.foundTypes.push(guy.type);
         }
 
         return !wasAlreadyAvailable;
