@@ -25,7 +25,7 @@ export const DOWN_KEYS = ['KeyS', 'ArrowDown'];
 // TODO: Allow this to be configurable somehow.
 export const JUMP_KEYS = ['Space', 'KeyZ'];
 export const SHOOT_KEYS = ['KeyX'];
-export const INVENTORY_KEYS = ['ShiftLeft', 'ShiftRight'];
+export const SWITCH_WEAPON_KEYS = ['ShiftLeft', 'ShiftRight'];
 
 export const SELECT_KEYS = ['Space', 'Enter'];
 export const TITLE_KEYS = ['Space', 'Enter'];

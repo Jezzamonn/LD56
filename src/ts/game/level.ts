@@ -249,7 +249,7 @@ export class Level {
         this.tiles.update(dt);
         this.camera.update(dt);
 
-        GuyTotals.updateGuyTotals(this.player.availableGuys, this.player.knownGuys);
+        GuyTotals.updateGuyTotals(this.player);
     }
 
     render(context: CanvasRenderingContext2D) {

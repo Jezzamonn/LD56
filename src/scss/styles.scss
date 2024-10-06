@@ -35,8 +35,20 @@ body {
     font-size: calc(8px * var(--scale));
 }
 
+.guy-total {
+    display: flex;
+    align-items: flex-start;
+}
+
 .guy-total-fire {
     color: #f77622;
+}
+
+.guy-total-arrow {
+    width: calc(7px * var(--scale));
+    width: calc(7px * var(--scale));
+    image-rendering: pixelated;
+    padding-right: calc(1px * var(--scale));
 }
 
 .hidden {

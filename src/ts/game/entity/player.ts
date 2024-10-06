@@ -8,7 +8,8 @@ import {
     PHYSICS_SCALE,
     RIGHT_KEYS,
     SHOOT_KEYS,
-    UP_KEYS,
+    SWITCH_WEAPON_KEYS,
+    UP_KEYS
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { SFX } from '../sfx';
@@ -19,12 +20,9 @@ import { Guy, GuyType } from './guy';
 import { RunningEntity } from './running-entity';
 import { Torch } from './torch';
 
-const imageName = 'player';
-
 // How long the player gets to jump after falling off a platform.
 // 0.1 seems a little too lenient, but whatever :)
 const COYOTE_TIME_SECS = 0.1;
-const BUFFER_JUMP_TIME_SECS = 0.1;
 
 export class Player extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
@@ -53,6 +51,11 @@ export class Player extends RunningEntity {
     availableGuysSet = new Set<Guy>();
     knownGuys: Guy[] = [];
     knownGuysSet = new Set<Guy>();
+
+    // TODO: Make this just start as normal.
+    foundTypes = [GuyType.Normal, GuyType.Fire];
+
+    selectedGuyType: GuyType = GuyType.Normal;
 
     isDead = false;
 
@@ -100,6 +103,15 @@ export class Player extends RunningEntity {
 
     handlePreMovementInput(dt: number) {
         const keys = this.level.game.keys;
+
+        // Can always switch guy
+        if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
+            this.selectedGuyType =
+                this.selectedGuyType === GuyType.Normal
+                    ? GuyType.Fire
+                    : GuyType.Normal;
+            console.log(`Selected guy type: ${this.selectedGuyType}`);
+        }
 
         if (this.isDead) {
             this.dampX(dt);
@@ -226,16 +238,16 @@ export class Player extends RunningEntity {
     }
 
     popAvailableGuy(): Guy | undefined {
-        const guy = this.availableGuys.shift();
+        let guyIndex = this.availableGuys.findIndex(g => g.type === this.selectedGuyType);
+        if (guyIndex === -1) {
+            return undefined;
+        }
+        const guy = this.availableGuys.splice(guyIndex, 1)[0];
         if (guy) {
             this.availableGuysSet.delete(guy);
             guy.exhausted = true;
         }
         return guy;
-    }
-
-    nextAvailableGuy(): Guy | undefined {
-        return this.availableGuys[0];
     }
 
     fireBullet() {
@@ -306,10 +318,10 @@ export class Player extends RunningEntity {
                 break;
         }
 
-        const nextGuy = this.nextAvailableGuy();
-        if (nextGuy?.type === GuyType.Fire) {
-            this.needToReleaseJumpKeyToDoubleJump = true;
-        }
+        // const nextGuy = this.nextAvailableGuy();
+        // if (nextGuy?.type === GuyType.Fire) {
+        //     this.needToReleaseJumpKeyToDoubleJump = true;
+        // }
 
         // // TODO: This feels like it needs to be balanced more... Hm.
         // this.dy -= 0.23 * this.jumpSpeed;
