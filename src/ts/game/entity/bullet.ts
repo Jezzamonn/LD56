@@ -82,14 +82,17 @@ export class Bullet extends Entity {
         if (this.done) {
             return; // Can't end twice.
         }
-        this.guy.midX = this.midX;
-        this.guy.midY = this.midY;
-        this.guy.dx = 0;
-        this.guy.dy = 0;
-        this.guy.maybeStopFollowingPlayer();
 
-        this.guy.done = false;
-        this.level.addEntity(this.guy);
+        // Only the unique guy respawns.
+        if (this.guy.type === 'unique') {
+            this.guy.midX = this.midX;
+            this.guy.midY = this.midY;
+            this.guy.dx = 0;
+            this.guy.dy = 0;
+            this.guy.maybeStopFollowingPlayer();
+            this.guy.done = false;
+            this.level.addEntity(this.guy);
+        }
 
         this.done = true;
     }

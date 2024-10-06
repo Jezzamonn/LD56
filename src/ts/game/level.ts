@@ -5,7 +5,7 @@ import { Background } from './background';
 import { FocusCamera } from './camera';
 import { Creature } from './entity/enemies/creature';
 import { Entity } from './entity/entity';
-import { Guy } from './entity/guy';
+import { Guy, GuyType } from './entity/guy';
 import { Player } from './entity/player';
 import { Torch } from './entity/torch';
 import { Game } from './game';
@@ -84,7 +84,7 @@ export class Level {
                     const guy = new Guy(this);
                     guy.midX = basePos.x;
                     guy.maxY = basePos.y;
-                    guy.type = 'unique';
+                    guy.type = GuyType.Unique;
                     this.immediatelyAddEntity(guy);
                 } else if (color === 'ff00ff') {
                     this.start = basePos;

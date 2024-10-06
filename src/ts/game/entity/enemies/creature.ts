@@ -28,7 +28,7 @@ export class Creature extends RunningEntity {
     startedRunning = false;
     distToAwaken = physFromPx(100);
 
-    type: GuyType = 'fire';
+    type: GuyType = GuyType.Fire;
 
     update(dt: number): void {
         this.animCount += dt;

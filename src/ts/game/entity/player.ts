@@ -15,7 +15,7 @@ import { SFX } from '../sfx';
 import { PhysicTile } from '../tile/tiles';
 import { Bullet } from './bullet';
 import { Creature } from './enemies/creature';
-import { Guy } from './guy';
+import { Guy, GuyType } from './guy';
 import { RunningEntity } from './running-entity';
 import { Torch } from './torch';
 
@@ -185,7 +185,7 @@ export class Player extends RunningEntity {
         const guy = new Guy(this.level);
         guy.midX = this.midX;
         guy.maxY = this.minY;
-        guy.type = this.availableGuys.length == 0 ? 'unique' : 'normal';
+        guy.type = this.knownGuys.length == 0 ? GuyType.Unique : GuyType.Normal;
         this.level.addEntity(guy);
     }
 
@@ -211,6 +211,15 @@ export class Player extends RunningEntity {
             this.knownGuysSet.add(guy);
             this.knownGuys.push(guy);
         }
+    }
+
+    popAvailableGuy(): Guy | undefined {
+        const guy = this.availableGuys.shift();
+        if (guy) {
+            this.availableGuysSet.delete(guy);
+            guy.exhausted = true;
+        }
+        return guy;
     }
 
     fireBullet() {
@@ -248,23 +257,6 @@ export class Player extends RunningEntity {
         this.bulletCooldownCount = this.bulletCooldown;
     }
 
-    popAvailableGuy(): Guy | undefined {
-        // for (let g = 0; g < this.availableGuys.length; g++) {
-        //     const guy = this.availableGuys[g];
-        //     if (!guy.done && !guy.exhausted && guy.isCloseEnoughToJump()) {
-        //         this.availableGuys.splice(g, 1);
-        //         guy.exhausted = true;
-        //         return guy;
-        //     }
-        // }
-        const guy = this.availableGuys.shift();
-        if (guy) {
-            this.availableGuysSet.delete(guy);
-            guy.exhausted = true;
-        }
-        return guy;
-    }
-
     bulletDoubleJump() {
         const guy = this.popAvailableGuy();
         if (!guy) {
@@ -273,20 +265,37 @@ export class Player extends RunningEntity {
         }
 
         // Push him away.
-        guy.maybeStopFollowingPlayer();
-        guy.midX = this.midX;
-        guy.maxY = this.midY + 1;
-        guy.dy = -0.5 * this.jumpSpeed;
-        const facingDirMult = this.facingDir == FacingDir.Right ? 1 : -1;
-        guy.dx = -facingDirMult * this.runSpeed;
+        if (guy.type === GuyType.Unique) {
+            guy.maybeStopFollowingPlayer();
+            guy.midX = this.midX;
+            guy.maxY = this.midY + 1;
+            guy.dy = -0.5 * this.jumpSpeed;
+            const facingDirMult = this.facingDir == FacingDir.Right ? 1 : -1;
+            guy.dx = -facingDirMult * 0.5 * this.runSpeed;
+        }
+        else {
+            // Removed. Sorry!
+            guy.done = true;
+        }
 
         // Some double jump effect.
+
+        switch (guy.type) {
+            case 'unique':
+            case 'normal':
+                this.dy = Math.min(this.dy, 0);
+                break;
+            case 'fire':
+                // Straight up double jump.
+                this.dy = -this.jumpSpeed;
+                break;
+        }
 
         // // TODO: This feels like it needs to be balanced more... Hm.
         // this.dy -= 0.23 * this.jumpSpeed;
 
         // Just stall in mid air, for the moment.
-        this.dy = Math.min(this.dy, 0);
+
 
         this.bulletCooldownCount = this.bulletCooldown;
     }

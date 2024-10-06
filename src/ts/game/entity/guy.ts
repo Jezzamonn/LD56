@@ -12,7 +12,11 @@ import { RunningEntity } from './running-entity';
 
 const speedNoise = 0.1 * PHYSICS_SCALE * FPS;
 
-export type GuyType = 'unique' | 'normal' | 'fire';
+export enum GuyType {
+    Unique = 'unique',
+    Normal = 'normal',
+    Fire = 'fire',
+}
 
 export namespace GuyType {
     const types = ['unique', 'normal', 'fire'];
@@ -51,7 +55,7 @@ export class Guy extends RunningEntity {
 
     followingPlayer = false;
 
-    type: GuyType = 'normal';
+    type: GuyType = GuyType.Normal;
 
     update(dt: number): void {
         this.animCount += dt;
@@ -83,10 +87,15 @@ export class Guy extends RunningEntity {
     checkForPlayer() {
         // Check if we're near the player.
         if (!this.exhausted && this.level.player.isTouchingEntity(this)) {
+            const addedBefore = this.level.player.availableGuysSet.has(this);
             // Add to available and known guys, if not already there.
             this.level.player.addGuy(this);
             // And start following the player.
             this.followingPlayer = true;
+
+            if (!addedBefore) {
+                this.smallJump();
+            }
         }
     }
 
