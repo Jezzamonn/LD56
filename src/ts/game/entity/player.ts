@@ -105,10 +105,7 @@ export class Player extends RunningEntity {
 
         // Can always switch guy
         if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
-            const curIndex = this.foundTypes.indexOf(this.selectedGuyType);
-            const nextIndex = (curIndex + 1) % this.foundTypes.length;
-            this.selectedGuyType = this.foundTypes[nextIndex];
-            console.log(`Selected guy type: ${this.selectedGuyType}`);
+            this.switchType();
         }
 
         if (this.isDead) {
@@ -170,6 +167,21 @@ export class Player extends RunningEntity {
         if (keys.anyIsPressed(SHOOT_KEYS) && this.bulletCooldownCount <= 0) {
             this.fireBullet();
         }
+    }
+
+    switchType() {
+        let newType = GuyType.Normal;
+        for (let i = 0; i < this.foundTypes.length; i++) {
+            const curIndex = this.foundTypes.indexOf(this.selectedGuyType);
+            const nextIndex = (curIndex + 1) % this.foundTypes.length;
+            const possibleNextType = this.foundTypes[nextIndex];
+            if (this.availableGuys.some(g => g.type === possibleNextType)) {
+                newType = possibleNextType;
+                break;
+            }
+        }
+        this.selectedGuyType = newType;
+        console.log(`Selected guy type: ${this.selectedGuyType}`);
     }
 
     respawn() {
@@ -249,6 +261,12 @@ export class Player extends RunningEntity {
             this.availableGuysSet.delete(guy);
             guy.exhausted = true;
         }
+
+        // Switch if there are no more available guys of the current type.
+        if (this.availableGuys.every(g => g.type !== this.selectedGuyType)) {
+            this.switchType();
+        }
+
         return guy;
     }
 
