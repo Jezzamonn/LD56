@@ -28,7 +28,7 @@ export class Creature extends RunningEntity {
     startedRunning = false;
     distToAwaken = physFromPx(100);
 
-    type: GuyType = GuyType.Fire;
+    type: GuyType = GuyType.Normal;
 
     update(dt: number): void {
         this.animCount += dt;
@@ -110,9 +110,11 @@ export class Creature extends RunningEntity {
 
     hurt(dir: Dir): void {
         this.health--;
-        const knockbackDir = Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
-        this.dx = knockbackDir === FacingDir.Left ? -this.hurtXSpeed : this.hurtXSpeed;
-        this.dy = -this.hurtJumpSpeed;
+        // TODO: Graphics.
+
+        // const knockbackDir = Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
+        // this.dx = knockbackDir === FacingDir.Left ? -this.hurtXSpeed : this.hurtXSpeed;
+        // this.dy = -this.hurtJumpSpeed;
 
         if (this.health <= 0) {
             this.die();
