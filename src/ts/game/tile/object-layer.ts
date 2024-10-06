@@ -15,7 +15,7 @@ const tilePositions = {
     [ObjectTile.Spawn]: { x: 6, y: 0 },
     [ObjectTile.Goal]: { x: 7, y: 0 },
     [ObjectTile.Platform]: { x: 6, y: 1 },
-    [ObjectTile.Destroyable]: { x: 0, y: 2 },
+    [ObjectTile.Destroyable]: { x: 7, y: 5 },
 }
 
 export class ObjectLayer extends TileLayer<ObjectTile> {

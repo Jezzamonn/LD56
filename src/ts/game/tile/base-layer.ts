@@ -5,7 +5,6 @@ import { TileLayer } from "./tile-layer";
 export enum BaseTile {
     Empty = 0,
     Wall = 1,
-    Background = 2,
     Unknown = 3, // Used temporarily when creating the level. Will be filled in later.
 }
 
@@ -35,13 +34,14 @@ export class BaseLayer extends TileLayer<BaseTile> {
     }
 
     pickTileToFillUnknown(neighbors: BaseTile[]): BaseTile {
-        // Filter out walls.
-        const filteredNeighbors = neighbors.filter((tile) => tile != BaseTile.Wall);
-        // Sort them (sort of a hack but works ok).
-        const sortedNeighbors = filteredNeighbors.sort();
-        // Because there's just two, we don't need to do the whole sorting thing... just pick the first.
-        // If this is empty, there are two walls. We use the background tile for that case.
-        return sortedNeighbors.length > 0 ? sortedNeighbors[0] : BaseTile.Background;
+        return BaseTile.Empty;
+        // // Filter out walls.
+        // const filteredNeighbors = neighbors.filter((tile) => tile != BaseTile.Wall);
+        // // Sort them (sort of a hack but works ok).
+        // const sortedNeighbors = filteredNeighbors.sort();
+        // // Because there's just two, we don't need to do the whole sorting thing... just pick the first.
+        // // If this is empty, there are two walls. We use the background tile for that case.
+        // return sortedNeighbors.length > 0 ? sortedNeighbors[0] : BaseTile.Background;
     }
 
     renderTile(
@@ -61,58 +61,15 @@ export class BaseLayer extends TileLayer<BaseTile> {
                     const dxdyTile = this.getTile({ x: pos.x + dx, y: pos.y + dy });
                     let tilePos: Point = { x: 0, y: 0 };
 
-                    switch (dxTile) {
-                        case BaseTile.Wall:
-                            tilePos.x += 1;
-                            break;
-                        case BaseTile.Background:
-                            tilePos.x += 2;
-                            break;
+                    if (dxTile == BaseTile.Empty) {
+                        tilePos.x += 1;
                     }
-                    switch (dyTile) {
-                        case BaseTile.Wall:
-                            tilePos.y += 1;
-                            break;
+                    if (dyTile == BaseTile.Empty) {
+                        tilePos.y += 1;
                     }
-
                     // // Special case for the corner piece.
-                    // if (dxTile == BaseTile.Wall && dyTile == BaseTile.Wall && dxdyTile != BaseTile.Wall) {
-                    //     tilePos.y += 2;
-                    // }
-
-                    this.drawQuarterTile(
-                        context,
-                        {
-                            tilePos,
-                            subTilePos,
-                            renderPos
-                        }
-                    );
-                }
-            }
-        } else if (tile == BaseTile.Background) {
-            // A similar set of conditions as for the walls.
-            for (const dx of [-1, 1]) {
-                const dxTile = this.getTile({ x: pos.x + dx, y: pos.y });
-                for (const dy of [-1, 1]) {
-                    const subTilePos = { x: dx < 0 ? 0 : 1, y: dy < 0 ? 0 : 1}
-                    const dyTile = this.getTile({ x: pos.x, y: pos.y + dy });
-
-                    let tilePos: Point = { x: 3, y: 0 };
-
-                    switch (dxTile) {
-                        case BaseTile.Background:
-                        case BaseTile.Wall:
-                            tilePos.x += 1;
-                            break;
-                    }
-                    switch (dyTile) {
-                        case BaseTile.Background:
-                            tilePos.y += 1;
-                            break;
-                        case BaseTile.Wall:
-                            tilePos.y += 2;
-                            break;
+                    if (dxTile == BaseTile.Wall && dyTile == BaseTile.Wall && dxdyTile != BaseTile.Wall) {
+                        tilePos.y += 2;
                     }
 
                     this.drawQuarterTile(
