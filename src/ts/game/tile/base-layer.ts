@@ -73,6 +73,10 @@ export class BaseLayer extends TileLayer<BaseTile> {
                         tilePos.y += 2;
                     }
 
+                    if (pos.y >= 90) {
+                        tilePos.x += 4;
+                    }
+
                     this.drawQuarterTile(
                         context,
                         {

@@ -12,9 +12,7 @@ export enum ObjectTile {
 
 // Position of the tile in the tileset.
 const tilePositions = {
-    [ObjectTile.Spawn]: { x: 6, y: 0 },
-    [ObjectTile.Goal]: { x: 7, y: 0 },
-    [ObjectTile.Platform]: { x: 6, y: 1 },
+    [ObjectTile.Platform]: { x: 2, y: 0 },
     [ObjectTile.Destroyable]: { x: 7, y: 5 },
 }
 
@@ -24,9 +22,14 @@ export class ObjectLayer extends TileLayer<ObjectTile> {
         const tile = this.getTile(pos);
         const renderPos = {x: pos.x * TILE_SIZE, y: pos.y * TILE_SIZE }
 
-        const tilePos = tilePositions[tile];
+        let tilePos = tilePositions[tile];
         if (!tilePos) {
             return;
+        }
+
+        if (tile == ObjectTile.Platform && pos.y >= 90) {
+            tilePos = {...tilePos};
+            tilePos.x += 4;
         }
 
         this.drawTile(context, {tilePos, renderPos});
