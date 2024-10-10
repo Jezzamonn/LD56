@@ -1,6 +1,7 @@
 import { Point } from "../../common";
 import { TILE_SIZE } from "../../constants";
 import { TileLayer } from "./tile-layer";
+import { tileRng } from "./tile-rng";
 
 export enum BaseTile {
     Empty = 0,
@@ -73,7 +74,7 @@ export class BaseLayer extends TileLayer<BaseTile> {
                         tilePos.y += 2;
                     }
 
-                    if (pos.y >= 90) {
+                    if ((pos.y + 3 * tileRng(pos)()) > 90) {
                         tilePos.x += 4;
                     }
 
