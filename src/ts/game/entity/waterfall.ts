@@ -1,7 +1,10 @@
-import { physFromPx, PHYSICS_SCALE } from '../../constants';
+import { physFromPx, PHYSICS_SCALE, TILE_SIZE } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { BaseTile } from '../tile/base-layer';
 import { Entity } from './entity';
+
+const waterfallSet = new Set(['waterfall']);
+const lavafallSet = new Set(['lavafall']);
 
 export class Waterfall extends Entity {
     w = physFromPx(16);
@@ -25,6 +28,8 @@ export class Waterfall extends Entity {
             console.log('waterfall length = ', this.length);
         }
 
+        const layers = this.y / TILE_SIZE > 90 ? lavafallSet : waterfallSet;
+
         for (var i = 0; i < this.length; i++) {
             Aseprite.drawAnimation({
                 context,
@@ -34,6 +39,7 @@ export class Waterfall extends Entity {
                 position: { x: this.midX, y: this.maxY + i * this.h },
                 scale: PHYSICS_SCALE,
                 anchorRatios: { x: 0.5, y: 1 },
+                layers,
             });
         }
     }
