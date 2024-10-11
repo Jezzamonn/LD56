@@ -18,6 +18,9 @@ import { Levels, LEVELS } from './levels';
 import { SFX } from './sfx/sfx';
 import { Tiles } from './tile/tiles';
 import { Notifications } from './ui/notification';
+import { CheckEveryFrame } from './updatable/check-every-frame';
+import { FrameCounter } from './updatable/frame-counter';
+import { Updatable } from './updatable/updatable';
 
 export class Game {
     canvas: HTMLCanvasElement;
@@ -35,7 +38,9 @@ export class Game {
 
     slowMoFactor = 1;
 
-    cutsceneThing: Generator | undefined;
+    cutscenePromise: Promise<void> | undefined;
+
+    updatables: Updatable[] = [];
 
     constructor(canvasSelector: string) {
         const canvas =
@@ -159,10 +164,11 @@ export class Game {
         try {
             this.handleInput();
 
-            if (this.cutsceneThing) {
-                const {done} = this.cutsceneThing.next();
-                if (done) {
-                    this.cutsceneThing = undefined;
+            for (let i = 0; i < this.updatables.length; i++) {
+                this.updatables[i].update(dt);
+                if (this.updatables[i].done) {
+                    this.updatables.splice(i, 1);
+                    i--;
                 }
             }
 
@@ -278,34 +284,66 @@ export class Game {
         SFX.preload();
     }
 
-    // Cutscene stuff
-    showTitle() {
-        this.cutsceneThing = this.showTitleGenerator();
+    wait(seconds: number): Promise<void> {
+        const frameCounter = new FrameCounter(seconds);
+        this.updatables.push(frameCounter);
+        return frameCounter.promise;
     }
 
-    *showTitleGenerator() {
+    waitForFrames(frames: number): Promise<void> {
+        return this.wait(frames / FPS);
+    }
+
+    waitForKeyPress(keys: string[]): Promise<void> {
+        const keyPressCheck = new CheckEveryFrame(() => this.keys.anyWasPressedThisFrame(keys));
+        this.updatables.push(keyPressCheck);
+        return keyPressCheck.promise;
+    }
+
+
+    // Cutscene stuff
+    showTitle() {
+        this.cutscenePromise = this.titleScreenCutscene();
+    }
+
+    async titleScreenCutscene() {
         Notifications.clear();
-        yield;
-        yield;
+
+        await this.waitForFrames(2);
+
         this.slowMoFactor = 0;
         const titleElem = document.querySelector('.title')!;
         titleElem.classList.remove('hidden');
 
-        yield* generatorWait(1);
+        await Promise.race([
+            this.wait(1),
+            this.waitForKeyPress(SELECT_KEYS),
+        ]);
 
         const h2Elem = titleElem.querySelector('h2')!;
         h2Elem.classList.remove('invisible');
         SFX.play('explode');
 
-        yield* generatorWait(2);
+        await Promise.race([
+            this.wait(2),
+            this.waitForKeyPress(SELECT_KEYS),
+        ]);
 
-        const pElem = titleElem.querySelector('p')!;
-        pElem.classList.remove('invisible');
+        const pElem1 = titleElem.querySelectorAll('p')[0]!;
+        pElem1.classList.remove('invisible');
         SFX.play('explode');
 
-        while (!this.keys.anyIsPressed(SELECT_KEYS)) {
-            yield;
-        }
+        const closeKeyPress = this.waitForKeyPress(SELECT_KEYS);
+
+        await Promise.race([
+            this.wait(0.5),
+            closeKeyPress,
+        ]);
+
+        const pElem2 = titleElem.querySelectorAll('p')[1]!;
+        pElem2.classList.remove('invisible');
+
+        await closeKeyPress;
 
         this.slowMoFactor = 1;
         titleElem.classList.add('hidden');
@@ -315,6 +353,15 @@ export class Game {
 
 function *generatorWait(time: number) {
     for (let i = 0; i < time * FPS; i++) {
+        yield;
+    }
+}
+
+function *skippableWait(time: number, keys: RegularKeys) {
+    for (let i = 0; i < time * FPS; i++) {
+        if (keys.anyWasPressedThisFrame(SELECT_KEYS)) {
+            return;
+        }
         yield;
     }
 }
