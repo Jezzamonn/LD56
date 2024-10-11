@@ -24,7 +24,7 @@ export class Decor extends Entity {
 
     static addDecorToLevel(level: Level) {
         // Use a new RNG so it's consistent.
-        const rng = seededRandom('gjskljkdljf');
+        const rng = seededRandom('gjskljkdljfff');
 
         for (
             let x = level.tiles.baseLayer.minX;
