@@ -7,13 +7,16 @@ import {
     physFromPx,
     PHYSICS_SCALE,
     RIGHT_KEYS,
+    SELECT_KEYS,
     SHOOT_KEYS,
     SWITCH_WEAPON_KEYS,
     UP_KEYS
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
+import { wait } from '../../lib/util';
 import { SFX } from '../sfx/sfx';
 import { PhysicTile } from '../tile/tiles';
+import { DeathMessage } from '../ui/death-message';
 import { Bullet } from './bullet';
 import { Creature } from './enemies/creature';
 import { Guy, GuyType } from './guy';
@@ -56,6 +59,7 @@ export class Player extends RunningEntity {
 
     selectedGuyType: GuyType = GuyType.Normal;
 
+    isDying = false;
     isDead = false;
 
     hadFirstShot = false;
@@ -113,6 +117,13 @@ export class Player extends RunningEntity {
             this.dampX(dt);
             return;
         }
+        if (this.isDying) {
+            if (this.isStanding()) {
+                this.die();
+            }
+            this.dampX(dt);
+            return;
+        }
 
         const upPressed = keys.anyIsPressed(UP_KEYS);
         const downPressed = keys.anyIsPressed(DOWN_KEYS);
@@ -159,7 +170,7 @@ export class Player extends RunningEntity {
         }
 
         if (this.isDead) {
-            if (keys.anyWasPressedThisFrame(JUMP_KEYS)) {
+            if (keys.anyWasPressedThisFrame(SELECT_KEYS)) {
                 this.respawn();
             }
             return;
@@ -204,6 +215,8 @@ export class Player extends RunningEntity {
         this.dx = 0;
         this.dy = 0;
         this.isDead = false;
+        this.isDying = false;
+        DeathMessage.hide();
     }
 
     spawnGuy() {
@@ -387,12 +400,33 @@ export class Player extends RunningEntity {
     }
 
     hurt() {
+        if (this.isDying) {
+            return;
+        }
+        this.isDying = true;
+
+        // Knockback
+        // In opposite direction of facingDir.
+        this.dx = this.facingDir == FacingDir.Right ? -this.runSpeed : this.runSpeed;
+        this.dy = -1.5 * PHYSICS_SCALE * FPS;
+        // Make sure the player isn't on the ground.
+        this.y --;
+
+        this.animCount = 0;
+        SFX.play('hurt');
+    }
+
+    die() {
         if (this.isDead) {
             return;
         }
-        this.isDead = true;
         this.animCount = 0;
-        SFX.play('hurt');
+        this.isDead = true;
+        wait(1).then(() => {
+            if (this.isDead) {
+                DeathMessage.show();
+            }
+        })
     }
 
     limitFallSpeed(dt: number): void {
@@ -440,8 +474,19 @@ export class Player extends RunningEntity {
         let animName = 'idle';
         let loop = true;
 
+        const animations = Aseprite.images['player'].animations;
+
         if (this.isDead) {
-            animName = 'hurt';
+            const hurtFallLength = animations['hurt-fall'].length / 1000;
+            if (this.animCount > hurtFallLength) {
+                animName = 'hurt-loop';
+            }
+            else {
+                animName = 'hurt-fall';
+                loop = false;
+            }
+        } else if (this.isDying) {
+            animName = 'hurt-midair';
             loop = false;
         } else if (!this.isStanding()) {
             if (this.dy > 0 && this.isAgainstLeftWall()) {
