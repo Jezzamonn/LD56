@@ -132,9 +132,11 @@ export class Creature extends RunningEntity {
         this.health--;
         // TODO: Graphics.
 
-        // const knockbackDir = Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
-        // this.dx = knockbackDir === FacingDir.Left ? -this.hurtXSpeed : this.hurtXSpeed;
-        // this.dy = -this.hurtJumpSpeed;
+        if (this.behavior === CreatureBehavior.Still) {
+            const knockbackDir = Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
+            this.dx = knockbackDir === FacingDir.Left ? -this.hurtXSpeed : this.hurtXSpeed;
+            this.dy = -this.hurtJumpSpeed;
+        }
 
         if (this.health <= 0) {
             this.die();
