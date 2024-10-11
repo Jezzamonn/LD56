@@ -336,7 +336,7 @@ export class Game {
         const closeKeyPress = this.waitForKeyPress(SELECT_KEYS);
 
         await Promise.race([
-            this.wait(0.5),
+            this.wait(2),
             closeKeyPress,
         ]);
 
