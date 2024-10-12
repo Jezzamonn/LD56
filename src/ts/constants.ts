@@ -1,6 +1,6 @@
 import { seededRandom } from "./lib/util";
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 // Multiple for the fixed-point physics.
 export const PHYSICS_SCALE = 16;
