@@ -3,6 +3,7 @@ import {
     FPS,
     GAME_HEIGHT_PX,
     GAME_WIDTH_PX,
+    HURT_FILTER,
     PHYSICS_SCALE,
     RESTART_KEYS,
     SELECT_KEYS,
@@ -87,7 +88,9 @@ export class Game {
         this.keys = new ComboKeys(new KeyboardKeys());
         this.keys.setUp();
 
-        Notifications.addNotification('Use the arrow keys to move, and Z to jump.');
+        Notifications.addNotification(
+            'Use the arrow keys to move, and Z to jump.'
+        );
     }
 
     nextLevel() {
@@ -153,7 +156,12 @@ export class Game {
             // Ignore if any control keys are pressed.
             if (
                 this.keys.anyWasPressedThisFrame(RESTART_KEYS) &&
-                !this.keys.anyIsPressed(['ControlLeft', 'ControlRight', 'MetaLeft', 'MetaRight'])
+                !this.keys.anyIsPressed([
+                    'ControlLeft',
+                    'ControlRight',
+                    'MetaLeft',
+                    'MetaRight',
+                ])
             ) {
                 this.startLevel(this.levelIndex);
             }
@@ -268,17 +276,26 @@ export class Game {
     }
 
     static async preload() {
-        const sprites = ['player', 'lilguy', 'creature', 'torch', 'column', 'grass', 'waterfall'];
-        const spritePromises = sprites.map((name) => Aseprite.loadImage({ name, basePath: 'sprites' }));
+        const spritesPromise = Aseprite.loadImages([
+            { name: 'player', basePath: 'sprites', filters: [HURT_FILTER]},
+            { name: 'creature', basePath: 'sprites', filters: [HURT_FILTER]},
+            { name: 'lilguy', basePath: 'sprites' },
+            { name: 'torch', basePath: 'sprites' },
+            { name: 'column', basePath: 'sprites' },
+            { name: 'grass', basePath: 'sprites' },
+            { name: 'waterfall', basePath: 'sprites' },
+        ]);
 
         const music = ['exploring'];
-        const musicPromises = music.map((name) => Sounds.loadSound({name, path: 'music/'}));
+        const musicPromises = music.map((name) =>
+            Sounds.loadSound({ name, path: 'music/' })
+        );
 
         await Promise.all([
             Levels.preload(),
             Tiles.preload(),
             Background.preload(),
-            ...spritePromises,
+            spritesPromise,
             ...musicPromises,
         ]);
         SFX.preload();
@@ -295,11 +312,12 @@ export class Game {
     }
 
     waitForKeyPress(keys: string[]): Promise<void> {
-        const keyPressCheck = new CheckEveryFrame(() => this.keys.anyWasPressedThisFrame(keys));
+        const keyPressCheck = new CheckEveryFrame(() =>
+            this.keys.anyWasPressedThisFrame(keys)
+        );
         this.updatables.push(keyPressCheck);
         return keyPressCheck.promise;
     }
-
 
     // Cutscene stuff
     showTitle() {
@@ -315,19 +333,13 @@ export class Game {
         const titleElem = document.querySelector('.title')!;
         titleElem.classList.remove('hidden');
 
-        await Promise.race([
-            this.wait(1),
-            this.waitForKeyPress(SELECT_KEYS),
-        ]);
+        await Promise.race([this.wait(1), this.waitForKeyPress(SELECT_KEYS)]);
 
         const h2Elem = titleElem.querySelector('h2')!;
         h2Elem.classList.remove('invisible');
         SFX.play('explode');
 
-        await Promise.race([
-            this.wait(2),
-            this.waitForKeyPress(SELECT_KEYS),
-        ]);
+        await Promise.race([this.wait(2), this.waitForKeyPress(SELECT_KEYS)]);
 
         const pElem1 = titleElem.querySelectorAll('p')[0]!;
         pElem1.classList.remove('invisible');
@@ -335,10 +347,7 @@ export class Game {
 
         const closeKeyPress = this.waitForKeyPress(SELECT_KEYS);
 
-        await Promise.race([
-            this.wait(2),
-            closeKeyPress,
-        ]);
+        await Promise.race([this.wait(2), closeKeyPress]);
 
         const pElem2 = titleElem.querySelectorAll('p')[1]!;
         pElem2.classList.remove('invisible');
@@ -351,13 +360,13 @@ export class Game {
     }
 }
 
-function *generatorWait(time: number) {
+function* generatorWait(time: number) {
     for (let i = 0; i < time * FPS; i++) {
         yield;
     }
 }
 
-function *skippableWait(time: number, keys: RegularKeys) {
+function* skippableWait(time: number, keys: RegularKeys) {
     for (let i = 0; i < time * FPS; i++) {
         if (keys.anyWasPressedThisFrame(SELECT_KEYS)) {
             return;

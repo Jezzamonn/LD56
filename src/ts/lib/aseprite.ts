@@ -101,6 +101,8 @@ interface ImageInfo {
      * same place.
      */
     jsonPath?: string;
+    /** Optional filters to precalculate. */
+    filters?: string[];
 }
 
 /**
@@ -130,6 +132,7 @@ export function loadImage({
     basePath = undefined,
     imagePath = undefined,
     jsonPath = undefined,
+    filters = [],
 }: ImageInfo): Promise<ImageMetadata> {
     if (!basePath && (!imagePath || !jsonPath)) {
         return Promise.reject(
@@ -209,7 +212,13 @@ export function loadImage({
     const allLoadedPromise = Promise.all([
         imageLoadedPromise,
         jsonLoadedPromise,
-    ]).then(() => images[name]);
+    ]).then(() => {
+        // If there are any filters, apply them now.
+        for (const filter of filters) {
+            applyFilter(name, filter);
+        }
+        return images[name]
+    });
     images[name].loadPromise = allLoadedPromise;
     return allLoadedPromise;
 }

@@ -1,5 +1,5 @@
 import { Dir, FacingDir } from '../../../common';
-import { FPS, physFromPx, PHYSICS_SCALE } from '../../../constants';
+import { FPS, HURT_FILTER, HURT_FLASH_TIME, physFromPx, PHYSICS_SCALE } from '../../../constants';
 import { Aseprite } from '../../../lib/aseprite';
 import { PhysicTile } from '../../tile/tiles';
 import { Guy, GuyType } from '../guy';
@@ -20,6 +20,7 @@ export class Creature extends RunningEntity {
     hurtXSpeed = 1.5 * PHYSICS_SCALE * FPS;
 
     health = 3;
+    hurtCount = 0;
 
     behavior = CreatureBehavior.Running;
     startedRunning = false;
@@ -29,6 +30,10 @@ export class Creature extends RunningEntity {
 
     update(dt: number): void {
         this.animCount += dt;
+
+        if (this.hurtCount > 0) {
+            this.hurtCount -= dt;
+        }
 
         switch (this.behavior) {
             case CreatureBehavior.Still:
@@ -130,7 +135,7 @@ export class Creature extends RunningEntity {
 
     hurt(dir: Dir): void {
         this.health--;
-        // TODO: Graphics.
+        this.hurtCount = HURT_FLASH_TIME;
 
         if (this.behavior === CreatureBehavior.Still) {
             const knockbackDir = Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
@@ -185,6 +190,7 @@ export class Creature extends RunningEntity {
             flippedX: this.facingDir === FacingDir.Right,
             loop: true,
             layers: GuyType.sets[this.type],
+            filter: this.hurtCount > 0 ? HURT_FILTER : undefined,
         });
     }
 }

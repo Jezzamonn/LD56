@@ -2,6 +2,8 @@ import { Dir, FacingDir, Point } from '../../common';
 import {
     DOWN_KEYS,
     FPS,
+    HURT_FILTER,
+    HURT_FLASH_TIME,
     JUMP_KEYS,
     LEFT_KEYS,
     physFromPx,
@@ -43,6 +45,7 @@ export class Player extends RunningEntity {
 
     bulletCooldown = 0.15;
     bulletCooldownCount = 0;
+    hurtCount = 0;
 
     w = physFromPx(6);
     h = physFromPx(16);
@@ -86,6 +89,10 @@ export class Player extends RunningEntity {
         }
         if (this.bulletCooldownCount > 0) {
             this.bulletCooldownCount -= dt;
+        }
+
+        if (this.hurtCount > 0) {
+            this.hurtCount -= dt;
         }
 
         if (this.isStanding()) {
@@ -405,6 +412,8 @@ export class Player extends RunningEntity {
         }
         this.isDying = true;
 
+        this.hurtCount = HURT_FLASH_TIME;
+
         // Knockback
         // In opposite direction of facingDir.
         this.dx = this.facingDir == FacingDir.Right ? -this.runSpeed : this.runSpeed;
@@ -528,6 +537,7 @@ export class Player extends RunningEntity {
             anchorRatios: { x: 0.5, y: 1 },
             flippedX: this.facingDir == FacingDir.Right,
             loop,
+            filter: this.hurtCount > 0 ? HURT_FILTER : undefined,
         });
     }
 }

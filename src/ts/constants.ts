@@ -1,6 +1,6 @@
 import { seededRandom } from "./lib/util";
 
-export const DEBUG = false;
+export const DEBUG = true;
 
 // Multiple for the fixed-point physics.
 export const PHYSICS_SCALE = 16;
@@ -30,6 +30,9 @@ export const SWITCH_WEAPON_KEYS = ['ShiftLeft', 'KeyL'];
 export const SELECT_KEYS = ['Enter', ...JUMP_KEYS, ...SHOOT_KEYS, ...SWITCH_WEAPON_KEYS];
 export const TITLE_KEYS = ['Space', 'Enter'];
 export const RESTART_KEYS = ['KeyR'];
+
+export const HURT_FILTER = 'contrast(0%) brightness(2)';
+export const HURT_FLASH_TIME = 0.1;
 
 export function physFromPx(x: number): number {
     return x * PHYSICS_SCALE;
