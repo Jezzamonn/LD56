@@ -1,5 +1,6 @@
 import { Dir, FacingDir, Point } from '../../common';
 import {
+    DEBUG,
     DOWN_KEYS,
     FPS,
     HURT_FILTER,
@@ -168,12 +169,13 @@ export class Player extends RunningEntity {
     handlePostMovementInput(dt: number) {
         const keys = this.level.game.keys;
 
-        // Debug: Spawn a lil guy
-        if (keys.wasPressedThisFrame('KeyG')) {
-            this.spawnGuy();
-        }
-        if (keys.wasPressedThisFrame('KeyB')) {
-            this.bringBackAllGuys();
+        if (DEBUG) {
+            if (keys.wasPressedThisFrame('KeyG')) {
+                this.spawnGuy();
+            }
+            if (keys.wasPressedThisFrame('KeyB')) {
+                this.bringBackAllGuys();
+            }
         }
 
         if (this.isDead) {
