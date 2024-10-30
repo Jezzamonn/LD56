@@ -15,7 +15,6 @@ import { Sounds } from '../lib/sounds';
 import { Background } from './background';
 import { centerCanvas } from './camera';
 import { Level } from './level';
-import { Levels, LEVELS } from './levels';
 import { SFX } from './sfx/sfx';
 import { Tiles } from './tile/tiles';
 import { Notifications } from './ui/notification';
@@ -93,28 +92,15 @@ export class Game {
         );
     }
 
-    nextLevel() {
-        this.startLevel((this.levelIndex + 1) % LEVELS.length);
-    }
-
-    prevLevel() {
-        this.startLevel((this.levelIndex + LEVELS.length - 1) % LEVELS.length);
-    }
-
     startLevel(levelIndex: number) {
         this.levelIndex = levelIndex;
-        const levelInfo = LEVELS[this.levelIndex];
-        const level = new Level(this, levelInfo);
+        const level = new Level(this);
         level.init();
         this.curLevel = level;
 
         // if (levelInfo.song) {
         //     Sounds.setSong(levelInfo.song);
         // }
-    }
-
-    win() {
-        this.nextLevel();
     }
 
     doAnimationLoop() {
@@ -147,12 +133,6 @@ export class Game {
             Sounds.toggleMute();
         }
         if (DEBUG) {
-            if (this.keys.wasPressedThisFrame('Comma')) {
-                this.prevLevel();
-            }
-            if (this.keys.wasPressedThisFrame('Period')) {
-                this.nextLevel();
-            }
             // Ignore if any control keys are pressed.
             if (
                 this.keys.anyWasPressedThisFrame(RESTART_KEYS) &&
@@ -292,7 +272,6 @@ export class Game {
         );
 
         await Promise.all([
-            Levels.preload(),
             Tiles.preload(),
             Background.preload(),
             spritesPromise,

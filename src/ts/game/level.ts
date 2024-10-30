@@ -1,7 +1,6 @@
 import ldtk from '../../../level/creatures.json';
 import { FacingDir, Point } from '../common';
 import { DEBUG, physFromPx, TILE_SIZE_PX } from '../constants';
-import { Images } from '../lib/images';
 import { Background } from './background';
 import { FocusCamera } from './camera';
 import { Column } from './entity/column';
@@ -13,7 +12,6 @@ import { Player } from './entity/player';
 import { Torch } from './entity/torch';
 import { Waterfall } from './entity/waterfall';
 import { Game } from './game';
-import { LevelInfo } from './levels';
 import { BaseTile } from './tile/base-layer';
 import { ObjectTile } from './tile/object-layer';
 import { Tiles } from './tile/tiles';
@@ -25,7 +23,6 @@ export class Level {
     entities: Entity[] = [];
     entitySet: Set<Entity> = new Set();
     entitiesToAdd: Entity[] = [];
-    levelInfo: LevelInfo;
 
     camera: FocusCamera = new FocusCamera();
     background: Background;
@@ -38,9 +35,8 @@ export class Level {
 
     player: Player;
 
-    constructor(game: Game, levelInfo: LevelInfo) {
+    constructor(game: Game) {
         this.game = game;
-        this.levelInfo = levelInfo;
     }
 
     init() {
@@ -137,123 +133,6 @@ export class Level {
         Decor.addDecorToLevel(this);
     }
 
-    initFromImage() {
-        const image = Images.images[this.levelInfo.name].image!;
-        this.entities = [];
-        this.tiles = new Tiles(image.width, image.height);
-
-        this.background = new Background(this, {
-            x: (TILE_SIZE_PX * image.width) / 2,
-            y: (TILE_SIZE_PX * image.height) / 2,
-        });
-
-        // Draw the image to a canvas to get the pixels.
-        const canvas = document.createElement('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
-        const context = canvas.getContext('2d')!;
-        context.drawImage(image, 0, 0, image.width, image.height);
-
-        // Read the pixels. White is empty, black is wall, and the red square is the starting position.
-        const imageData = context.getImageData(0, 0, image.width, image.height);
-        for (let y = 0; y < image.height; y++) {
-            for (let x = 0; x < image.width; x++) {
-                const basePos = this.tiles.getTileCoord(
-                    { x, y },
-                    { x: 0.5, y: 1 }
-                );
-
-                const color = pixelToColorString(imageData, x, y);
-                if (color === 'ffffff') {
-                    // Don't need to do anything for empty tiles as they're the default.
-                } else if (color === '000000') {
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Wall, {
-                        allowGrow: false,
-                    });
-                } else if (color === 'ff00ff') {
-                    this.start = basePos;
-                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Spawn, {
-                        allowGrow: false,
-                    });
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
-                        allowGrow: false,
-                    });
-                } else if (color === 'ff01ff') {
-                    // Spawn the lil guy.
-                    const guy = new Guy(this);
-                    guy.midX = basePos.x;
-                    guy.maxY = basePos.y;
-                    guy.type = GuyType.Normal;
-                    guy.isUnique = true;
-                    guy.facingDir = FacingDir.Left;
-                    this.immediatelyAddEntity(guy);
-                } else if (color === 'ffff00' || color === 'ffff99') {
-                    // Torches
-                    const torch = new Torch(this);
-                    torch.midX = basePos.x;
-                    torch.maxY = basePos.y;
-                    if (color === 'ffff99') {
-                        torch.visible = false;
-                    }
-                    this.immediatelyAddEntity(torch);
-                } else if (color.slice(0, 5) === 'ff000' || color.slice(0, 5) === 'ff001') {
-                    const enemy = new Creature(this);
-                    enemy.midX = basePos.x;
-                    enemy.maxY = basePos.y;
-                    enemy.initFromColor(color.slice(4));
-                    this.immediatelyAddEntity(enemy);
-
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
-                        allowGrow: false,
-                    });
-                } else if (color === '333333') {
-                    this.tiles.objectLayer.setTile(
-                        { x, y },
-                        ObjectTile.Platform,
-                        { allowGrow: false }
-                    );
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
-                        allowGrow: false,
-                    });
-                } else if (color === '0000ff') {
-                    this.tiles.objectLayer.setTile(
-                        { x, y },
-                        ObjectTile.Destroyable,
-                        { allowGrow: false }
-                    );
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Unknown, {
-                        allowGrow: false,
-                    });
-                } else if (color === '0066ff') {
-                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.InvisibleWall, {
-                        allowGrow: false,
-                    });
-                    this.tiles.baseLayer.setTile({ x, y: y - 1 }, BaseTile.InvisibleWall, {
-                        allowGrow: false,
-                    });
-                    const column = new Column(this);
-                    column.midX = basePos.x;
-                    column.maxY = basePos.y;
-                    this.immediatelyAddEntity(column);
-                } else if (color === '0fffff') {
-                    const column = new Waterfall(this);
-                    column.midX = basePos.x;
-                    column.maxY = basePos.y;
-                    this.immediatelyAddEntity(column);
-                } else {
-                    console.log(`Unknown color: ${color} at ${x}, ${y}.`);
-                }
-            }
-        }
-        this.tiles.baseLayer.fillInUnknownTiles();
-
-        // this.camera.target = () => ({x: this.start.x, y: this.start.y});
-
-        this.spawnPlayer();
-
-        Decor.addDecorToLevel(this);
-    }
-
     immediatelyAddEntity(entity: Entity) {
         if (this.entitySet.has(entity)) {
             return;
@@ -341,11 +220,6 @@ export class Level {
         }
 
         this.tiles.baseLayer.render(context);
-    }
-
-    win() {
-        this.won = true;
-        this.game.win();
     }
 }
 
