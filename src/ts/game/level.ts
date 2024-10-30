@@ -1,5 +1,6 @@
+import ldtk from '../../../level/creatures.json';
 import { FacingDir, Point } from '../common';
-import { DEBUG, TILE_SIZE_PX } from '../constants';
+import { DEBUG, physFromPx, TILE_SIZE_PX } from '../constants';
 import { Images } from '../lib/images';
 import { Background } from './background';
 import { FocusCamera } from './camera';
@@ -24,7 +25,6 @@ export class Level {
     entities: Entity[] = [];
     entitySet: Set<Entity> = new Set();
     entitiesToAdd: Entity[] = [];
-    image: HTMLImageElement | undefined;
     levelInfo: LevelInfo;
 
     camera: FocusCamera = new FocusCamera();
@@ -43,9 +43,102 @@ export class Level {
         this.levelInfo = levelInfo;
     }
 
+    init() {
+        const level = ldtk.levels[0];
+        const width = level.pxWid / TILE_SIZE_PX;
+        const height = level.pxHei / TILE_SIZE_PX;
+
+        this.background = new Background(this, {
+            x: (TILE_SIZE_PX * width) / 2,
+            y: (TILE_SIZE_PX * height) / 2,
+        });
+
+        const intGrid = level.layerInstances.find((layer) => layer.__identifier === 'IntGrid')!;
+        this.tiles = new Tiles(intGrid.__cWid, intGrid.__cHei);
+        for (let y = 0; y < intGrid.__cHei; y++) {
+            for (let x = 0; x < intGrid.__cWid; x++) {
+                const tile = intGrid.intGridCsv[y * intGrid.__cWid + x];
+                if (tile === 1) {
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.Wall, {
+                        allowGrow: false,
+                    });
+                } else if (tile === 2) {
+                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Platform, {
+                        allowGrow: false,
+                    });
+                } else if (tile === 3) {
+                    this.tiles.objectLayer.setTile({ x, y }, ObjectTile.Destroyable, {
+                        allowGrow: false,
+                    });
+                } else if (tile === 4) {
+                    this.tiles.baseLayer.setTile({ x, y }, BaseTile.InvisibleWall, {
+                        allowGrow: false,
+                    });
+                }
+            }
+        }
+
+        this.entities = [];
+        const entityLayer = level.layerInstances.find((layer) => layer.__identifier === 'Entities')!;
+        for (const entity of entityLayer.entityInstances) {
+            switch (entity.__identifier) {
+                case 'Spawn':
+                    this.start = {
+                        x: physFromPx(entity.px[0]),
+                        y: physFromPx(entity.px[1]),
+                    };
+                    break;
+                case 'Lilguy':
+                    const guy = new Guy(this);
+                    guy.midX = physFromPx(entity.px[0]);
+                    guy.maxY = physFromPx(entity.px[1]);
+                    guy.type = GuyType.Normal;
+                    guy.isUnique = true;
+                    guy.facingDir = FacingDir.Left;
+                    this.immediatelyAddEntity(guy);
+                    break;
+                case 'Torch':
+                    const torch = new Torch(this);
+                    torch.midX = physFromPx(entity.px[0]);
+                    torch.maxY = physFromPx(entity.px[1]);
+                    this.immediatelyAddEntity(torch);
+                    break;
+                case 'InvisibleRespawn':
+                    const invisibleTorch = new Torch(this);
+                    invisibleTorch.midX = physFromPx(entity.px[0]);
+                    invisibleTorch.maxY = physFromPx(entity.px[1]);
+                    invisibleTorch.visible = false;
+                    this.immediatelyAddEntity(invisibleTorch);
+                    break;
+                case 'CreatureEnemy':
+                    const enemy = new Creature(this);
+                    enemy.midX = physFromPx(entity.px[0]);
+                    enemy.maxY = physFromPx(entity.px[1]) - 1;
+                    enemy.initFromEditor(entity.fieldInstances);
+                    this.immediatelyAddEntity(enemy);
+                    break;
+                case 'Column':
+                    const column = new Column(this);
+                    column.midX = physFromPx(entity.px[0]);
+                    column.maxY = physFromPx(entity.px[1]);
+                    this.immediatelyAddEntity(column);
+                    break;
+                case 'WaterfallStart':
+                    const waterfall = new Waterfall(this);
+                    waterfall.midX = physFromPx(entity.px[0]);
+                    waterfall.midY = physFromPx(entity.px[1]);
+                    this.immediatelyAddEntity(waterfall);
+                    break;
+            }
+        }
+
+        this.spawnPlayer();
+
+        Decor.addDecorToLevel(this);
+    }
+
     initFromImage() {
         const image = Images.images[this.levelInfo.name].image!;
-        this.image = image;
         this.entities = [];
         this.tiles = new Tiles(image.width, image.height);
 

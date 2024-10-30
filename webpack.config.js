@@ -3,12 +3,12 @@ const webpack = require('webpack');
 
 const client = {
     resolve: {
-        extensions: ['.ts', '.tsx', '.js', '.json']
+        extensions: ['.ts', '.js', '.json']
     },
     module: {
         rules: [
             {
-                test: /\.(ts|js)x?$/,
+                test: /\.(ts|js)$/,
                 exclude: /node_modules/,
                 loader: 'babel-loader',
             }

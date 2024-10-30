@@ -1,6 +1,13 @@
 import { Dir, FacingDir } from '../../../common';
-import { FPS, HURT_FILTER, HURT_FLASH_TIME, physFromPx, PHYSICS_SCALE } from '../../../constants';
+import {
+    FPS,
+    HURT_FILTER,
+    HURT_FLASH_TIME,
+    physFromPx,
+    PHYSICS_SCALE,
+} from '../../../constants';
 import { Aseprite } from '../../../lib/aseprite';
+import { FieldInstance } from '../../../lib/ldtk-json';
 import { PhysicTile } from '../../tile/tiles';
 import { Guy, GuyType } from '../guy';
 import { RunningEntity } from '../running-entity';
@@ -53,17 +60,48 @@ export class Creature extends RunningEntity {
         this.move(dt);
     }
 
+    initFromEditor(fieldInstances: FieldInstance[]) {
+        this.facingDir = fieldInstances.find(
+            (field) => field.__identifier === 'FacingRight'
+        )?.__value
+            ? FacingDir.Right
+            : FacingDir.Left;
+
+        const behavior = fieldInstances.find(
+            (field) => field.__identifier === 'Behavior'
+        )?.__value as string;
+        if (behavior === 'Still') {
+            this.behavior = CreatureBehavior.Still;
+        } else if (behavior === 'Walk') {
+            this.behavior = CreatureBehavior.CautiousRunning;
+            this.runSpeed = 0.7 * PHYSICS_SCALE * FPS;
+        } else if (behavior === 'Run') {
+            this.behavior = CreatureBehavior.Running;
+            this.runSpeed = 1.0 * PHYSICS_SCALE * FPS;
+        }
+
+        const type = fieldInstances.find(
+            (field) => field.__identifier === 'CreatureType'
+        )?.__value as string;
+        if (type === 'Fire') {
+            this.type = GuyType.Fire;
+            this.health = 3;
+            this.runSpeed *= 1.2;
+        } else {
+            this.type = GuyType.Normal;
+            this.health = 2;
+        }
+    }
+
     initFromColor(lastColorPart: string) {
         const modifier = parseInt(lastColorPart[1], 16);
 
-        this.facingDir =
-            modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
+        this.facingDir = modifier % 2 === 0 ? FacingDir.Left : FacingDir.Right;
 
         this.behavior = modifier >> 1;
         if (this.behavior === CreatureBehavior.Running) {
             this.runSpeed = 1.0 * PHYSICS_SCALE * FPS;
-        }
-        else if (this.behavior === CreatureBehavior.CautiousRunning) {
+        } else if (this.behavior === CreatureBehavior.CautiousRunning) {
             this.runSpeed = 0.7 * PHYSICS_SCALE * FPS;
         }
 
@@ -71,8 +109,7 @@ export class Creature extends RunningEntity {
             this.type = GuyType.Fire;
             this.health = 3;
             this.runSpeed *= 1.2;
-        }
-        else {
+        } else {
             this.type = GuyType.Normal;
             this.health = 2;
         }
@@ -85,12 +122,10 @@ export class Creature extends RunningEntity {
             if (this.isStanding()) {
                 if (this.facingDir == FacingDir.Left) {
                     this.runLeft(dt);
-                }
-                else {
+                } else {
                     this.runRight(dt);
                 }
-            }
-            else {
+            } else {
                 this.dampX(dt);
             }
         }
@@ -102,22 +137,24 @@ export class Creature extends RunningEntity {
         if (this.startedRunning) {
             if (this.isStanding()) {
                 // Check the position a little bit ahead, if it's empty, turn around to avoid falling.
-                const facingDirMult = this.facingDir === FacingDir.Left ? -1 : 1;
-                const checkX = this.midX + facingDirMult * this.w / 2;
+                const facingDirMult =
+                    this.facingDir === FacingDir.Left ? -1 : 1;
+                const checkX = this.midX + (facingDirMult * this.w) / 2;
                 const checkY = this.maxY + 1;
-                const tile = this.level.tiles.getTileAtCoord({x: checkX, y: checkY});
+                const tile = this.level.tiles.getTileAtCoord({
+                    x: checkX,
+                    y: checkY,
+                });
                 if (tile === PhysicTile.Empty) {
                     this.facingDir = FacingDir.opposite(this.facingDir);
                 }
 
                 if (this.facingDir == FacingDir.Left) {
                     this.runLeft(dt);
-                }
-                else {
+                } else {
                     this.runRight(dt);
                 }
-            }
-            else {
+            } else {
                 this.dampX(dt);
             }
         }
@@ -127,7 +164,10 @@ export class Creature extends RunningEntity {
         if (!this.startedRunning) {
             const xDistToPlayer = this.level.player.midX - this.midX;
             const yDistToPlayer = this.level.player.midY - this.midY;
-            if (Math.abs(xDistToPlayer) < this.distToAwaken && Math.abs(yDistToPlayer) < this.distToAwaken) {
+            if (
+                Math.abs(xDistToPlayer) < this.distToAwaken &&
+                Math.abs(yDistToPlayer) < this.distToAwaken
+            ) {
                 this.startedRunning = true;
             }
         }
@@ -138,8 +178,12 @@ export class Creature extends RunningEntity {
         this.hurtCount = HURT_FLASH_TIME;
 
         if (this.behavior === CreatureBehavior.Still) {
-            const knockbackDir = Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
-            this.dx = knockbackDir === FacingDir.Left ? -this.hurtXSpeed : this.hurtXSpeed;
+            const knockbackDir =
+                Dir.toFacingDir(dir) ?? FacingDir.opposite(this.facingDir);
+            this.dx =
+                knockbackDir === FacingDir.Left
+                    ? -this.hurtXSpeed
+                    : this.hurtXSpeed;
             this.dy = -this.hurtJumpSpeed;
         }
 

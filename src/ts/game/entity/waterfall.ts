@@ -18,7 +18,7 @@ export class Waterfall extends Entity {
             while (true) {
                 const tile = this.level.tiles.baseLayer.getTileAtCoord({
                     x: this.midX,
-                    y: this.maxY + this.length * this.h,
+                    y: this.midY + this.length * this.h,
                 });
                 if (tile === BaseTile.Wall) {
                     break;
@@ -38,7 +38,7 @@ export class Waterfall extends Entity {
                 time: this.animCount,
                 position: { x: this.midX, y: this.maxY + i * this.h },
                 scale: PHYSICS_SCALE,
-                anchorRatios: { x: 0.5, y: 1 },
+                anchorRatios: { x: 0.5, y: 0.5 },
                 layers,
             });
         }
