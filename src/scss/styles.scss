@@ -6,6 +6,16 @@ html, body {
     color: white;
 }
 
+@font-face {
+    font-family: 'ChevyRay - Softsquare Mono';
+    src: url('../font/ChevyRay - Softsquare Mono.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'ChevyRay - Thicket';
+    src: url('../font/Thicket.ttf') format('truetype');
+}
+
 html, body {
     font-family: 'ChevyRay - Softsquare Mono', sans-serif;
 }
