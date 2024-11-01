@@ -91,6 +91,7 @@ export class Level {
                     guy.type = GuyType.Normal;
                     guy.isUnique = true;
                     guy.facingDir = FacingDir.Left;
+                    guy.followingPlayer = false;
                     this.immediatelyAddEntity(guy);
                     break;
                 case 'Torch':

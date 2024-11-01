@@ -81,7 +81,7 @@ export class Guy extends RunningEntity {
 
     closeness = lerp(physFromPx(5), physFromPx(15), rng());
 
-    followingPlayer = false;
+    followingPlayer = true;
 
     type: GuyType = GuyType.Normal;
 
