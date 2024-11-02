@@ -93,7 +93,6 @@ export class Bullet extends Entity {
             this.guy.midY = this.midY;
             this.guy.dx = 0;
             this.guy.dy = 0;
-            this.guy.maybeStopFollowingPlayer();
             this.guy.done = false;
             this.level.addEntity(this.guy);
         }

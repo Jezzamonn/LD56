@@ -247,15 +247,6 @@ export class Guy extends RunningEntity {
         this.dx = -initialDx;
     }
 
-    maybeStopFollowingPlayer() {
-        if (this.isUnique) {
-            // Always follow the player.
-        }
-        else {
-            this.followingPlayer = false;
-        }
-    }
-
     render(context: CanvasRenderingContext2D): void {
         // super.render(context);
 

@@ -1,10 +1,15 @@
-import { wait } from "../../lib/util";
+import { wait } from '../../lib/util';
 
 export namespace Notifications {
-    export async function addNotification(text: string): Promise<void> {
+    export async function addNotification(
+        text: string,
+        removeNotificationFn: (() => Promise<void>) | undefined = undefined
+    ): Promise<void> {
         clear();
 
-        const notificationContainer = document.querySelector('.notification-container')!;
+        const notificationContainer = document.querySelector(
+            '.notification-container'
+        )!;
 
         const notification = document.createElement('div');
         notification.classList.add('notification');
@@ -13,13 +18,20 @@ export namespace Notifications {
         await wait(0.1);
         notification.classList.add('shown-notification');
 
-        await wait(10);
+        if (removeNotificationFn) {
+            await removeNotificationFn();
+        } else {
+            await wait(10);
+        }
+
         // Remove element.
         notification.remove();
     }
 
     export function clear(): void {
-        const notificationContainer = document.querySelector('.notification-container')!;
+        const notificationContainer = document.querySelector(
+            '.notification-container'
+        )!;
         notificationContainer.innerHTML = '';
     }
 }

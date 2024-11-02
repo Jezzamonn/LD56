@@ -351,7 +351,6 @@ export class Player extends RunningEntity {
 
         // Push him away.
         if (guy.isUnique) {
-            guy.maybeStopFollowingPlayer();
             guy.midX = this.midX;
             guy.maxY = this.midY + 1;
             guy.dx = this.dx;
