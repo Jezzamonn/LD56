@@ -41,7 +41,8 @@
     },
     "webpack": {
       "patterns": [
-        "src/ts/**"
+        "src/ts/**",
+        "level/**"
       ],
       "extensions": "js,jsx,ts,tsx,json"
     }
