@@ -25,7 +25,6 @@ export class Waterfall extends Entity {
                 }
                 this.length++;
             }
-            console.log('waterfall length = ', this.length);
         }
 
         const layers = this.y / TILE_SIZE > 90 ? lavafallSet : waterfallSet;
