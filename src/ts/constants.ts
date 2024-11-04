@@ -1,6 +1,7 @@
 import { seededRandom } from "./lib/util";
 
-export const DEBUG = true;
+// True if on local host.
+export const DEBUG = window.location.hostname === 'localhost';
 
 // Multiple for the fixed-point physics.
 export const PHYSICS_SCALE = 16;

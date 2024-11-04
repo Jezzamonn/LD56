@@ -1,7 +1,7 @@
 import { Game } from "./game/game";
 
 async function init() {
-    await Game.preload()
+    await Game.preload();
 
     const game = new Game('.canvas');
     game.start();

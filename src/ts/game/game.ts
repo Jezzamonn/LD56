@@ -20,6 +20,7 @@ import { Tiles } from './tile/tiles';
 import { Notifications } from './ui/notification';
 import { CheckEveryFrame } from './updatable/check-every-frame';
 import { FrameCounter } from './updatable/frame-counter';
+import { UiStackElement } from './updatable/ui-stack-element';
 import { Updatable } from './updatable/updatable';
 
 export class Game {
@@ -31,7 +32,7 @@ export class Game {
     simulatedTimeMs: number | undefined;
 
     levelIndex = 0;
-    curLevel: Level | undefined;
+    uiAndLevelStack: UiStackElement[] = [];
 
     keys: RegularKeys;
     nullKeys = new NullKeys();
@@ -73,11 +74,7 @@ export class Game {
 
         this.doAnimationLoop();
 
-        this.startLevel(0);
-
-        if (DEBUG) {
-            this.loadPlayerPosition();
-        }
+        this.startLevel();
     }
 
     startPlaying() {
@@ -92,15 +89,10 @@ export class Game {
         );
     }
 
-    startLevel(levelIndex: number) {
-        this.levelIndex = levelIndex;
+    startLevel() {
         const level = new Level(this);
         level.init();
-        this.curLevel = level;
-
-        // if (levelInfo.song) {
-        //     Sounds.setSong(levelInfo.song);
-        // }
+        this.uiAndLevelStack = [level];
     }
 
     doAnimationLoop() {
@@ -143,7 +135,7 @@ export class Game {
                     'MetaRight',
                 ])
             ) {
-                this.startLevel(this.levelIndex);
+                this.startLevel();
             }
         }
     }
@@ -160,43 +152,15 @@ export class Game {
                 }
             }
 
-            this.curLevel?.update(dt * this.slowMoFactor);
+            const currentUi = this.uiAndLevelStack[this.uiAndLevelStack.length - 1];
+            currentUi.update(dt * this.slowMoFactor);
+            if (currentUi.done) {
+                this.uiAndLevelStack.pop();
+            }
 
             this.keys.resetFrame();
-
-            if (DEBUG) {
-                // To make play testing quicker, save the last position of the player.
-                this.savePlayerPosition();
-            }
         } catch (e) {
             console.error(e);
-        }
-    }
-
-    savePlayerPosition() {
-        const localStoragePrefix = 'ihaveputthecreatureintomygun';
-        const player = this.curLevel?.player;
-        if (player) {
-            const key = `${localStoragePrefix}-last-player-position`;
-            localStorage.setItem(
-                key,
-                JSON.stringify({ x: player.midX, y: player.maxY })
-            );
-        }
-    }
-
-    loadPlayerPosition() {
-        const localStoragePrefix = 'ihaveputthecreatureintomygun';
-        const key = `${localStoragePrefix}-last-player-position`;
-        const json = localStorage.getItem(key);
-        if (!json) {
-            return;
-        }
-        const { x, y } = JSON.parse(json);
-        const player = this.curLevel?.player;
-        if (player) {
-            player.midX = x;
-            player.maxY = y;
         }
     }
 
@@ -210,7 +174,9 @@ export class Game {
         this.applyScale(this.context);
 
         try {
-            this.curLevel?.render(this.context);
+            for (const ui of this.uiAndLevelStack) {
+                ui.render?.(this.context);
+            }
         } catch (e) {
             console.error(e);
         }

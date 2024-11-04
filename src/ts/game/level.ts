@@ -1,6 +1,6 @@
 import ldtk from '../../../level/creatures.json';
 import { FacingDir, Point } from '../common';
-import { DEBUG, physFromPx, TILE_SIZE_PX } from '../constants';
+import { DEBUG, physFromPx, SWITCH_WEAPON_KEYS, TILE_SIZE_PX } from '../constants';
 import { Background } from './background';
 import { FocusCamera } from './camera';
 import { Column } from './entity/column';
@@ -15,10 +15,12 @@ import { Game } from './game';
 import { BaseTile } from './tile/base-layer';
 import { ObjectTile } from './tile/object-layer';
 import { Tiles } from './tile/tiles';
+import { CreatureWidget } from './ui/creature-widget';
 import { GuyTotals } from './ui/guy-totals';
+import { UiStackElement } from './updatable/ui-stack-element';
 
 // Contains everything in one level, including the tiles and the entities.
-export class Level {
+export class Level implements UiStackElement {
     game: Game;
     entities: Entity[] = [];
     entitySet: Set<Entity> = new Set();
@@ -38,6 +40,7 @@ export class Level {
     constructor(game: Game) {
         this.game = game;
     }
+    done: boolean;
 
     init() {
         const level = ldtk.levels[0];
@@ -131,6 +134,10 @@ export class Level {
 
         this.spawnPlayer();
 
+        if (DEBUG) {
+            this.loadPlayerPosition();
+        }
+
         Decor.addDecorToLevel(this);
     }
 
@@ -178,6 +185,27 @@ export class Level {
         this.camera.target = () => player.cameraFocus();
     }
 
+    savePlayerPosition() {
+        const localStoragePrefix = 'ihaveputthecreatureintomygun';
+        const key = `${localStoragePrefix}-last-player-position`;
+        localStorage.setItem(
+            key,
+            JSON.stringify({ x: this.player.midX, y: this.player.maxY })
+        );
+    }
+
+    loadPlayerPosition() {
+        const localStoragePrefix = 'ihaveputthecreatureintomygun';
+        const key = `${localStoragePrefix}-last-player-position`;
+        const json = localStorage.getItem(key);
+        if (!json) {
+            return;
+        }
+        const { x, y } = JSON.parse(json);
+        this.player.midX = x;
+        this.player.maxY = y;
+    }
+
     update(dt: number) {
         // DEBUG: Run the game faster to test it faster.
         if (DEBUG && this.game.keys.anyIsPressed(['ShiftLeft', 'ShiftRight'])) {
@@ -207,6 +235,22 @@ export class Level {
         this.camera.update(dt);
 
         GuyTotals.updateGuyTotals(this.player);
+
+        this.handleInput();
+
+        if (DEBUG) {
+            // To make play testing quicker, save the last position of the player.
+            this.savePlayerPosition();
+        }
+    }
+
+    handleInput() {
+        const keys = this.game.keys;
+        if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
+            const creatureWidget = new CreatureWidget(this);
+            creatureWidget.show();
+            this.game.uiAndLevelStack.push(creatureWidget);
+        }
     }
 
     render(context: CanvasRenderingContext2D) {
@@ -222,16 +266,4 @@ export class Level {
 
         this.tiles.baseLayer.render(context);
     }
-}
-
-function pixelToColorString(imageData: ImageData, x: number, y: number) {
-    const i = (y * imageData.width + x) * 4;
-    const r = imageData.data[i];
-    const g = imageData.data[i + 1];
-    const b = imageData.data[i + 2];
-    return (
-        r.toString(16).padStart(2, '0') +
-        g.toString(16).padStart(2, '0') +
-        b.toString(16).padStart(2, '0')
-    );
 }

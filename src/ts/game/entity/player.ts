@@ -12,7 +12,6 @@ import {
     RIGHT_KEYS,
     SELECT_KEYS,
     SHOOT_KEYS,
-    SWITCH_WEAPON_KEYS,
     UP_KEYS
 } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
@@ -115,11 +114,6 @@ export class Player extends RunningEntity {
 
     handlePreMovementInput(dt: number) {
         const keys = this.level.game.keys;
-
-        // Can always switch guy
-        if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
-            this.switchType();
-        }
 
         if (this.isDead) {
             this.dampX(dt);
