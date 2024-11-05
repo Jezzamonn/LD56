@@ -1,8 +1,10 @@
-import { DOWN_KEYS, SWITCH_WEAPON_KEYS, UP_KEYS } from '../../constants';
+import { DOWN_KEYS, JUMP_KEYS, SELECT_KEYS, SHOOT_KEYS, SWITCH_WEAPON_KEYS, UP_KEYS } from '../../constants';
 import { Aseprite } from '../../lib/aseprite';
 import { GuyType } from "../entity/guy";
 import { Level } from '../level';
 import { UiStackElement } from '../updatable/ui-stack-element';
+
+const DISMISS_KEYS = SWITCH_WEAPON_KEYS.concat(SELECT_KEYS, JUMP_KEYS, SHOOT_KEYS);
 
 export class CreatureWidget implements UiStackElement {
 
@@ -68,7 +70,7 @@ export class CreatureWidget implements UiStackElement {
     update(dt: number): void {
         const keys = this.level.game.keys;
 
-        if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
+        if (keys.anyWasPressedThisFrame(DISMISS_KEYS)) {
             this.hide();
             return;
         }
