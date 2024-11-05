@@ -143,46 +143,50 @@ p {
 
 .select-creature-widget {
     position: absolute;
+    display: flex;
+    justify-content: center;
 }
 
 .select-creature-widget-option {
-    border-radius: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
+    position: absolute;
+    width: 30vmin;
+    height: 30vmin;
+    bottom: 0;
+
+    background-image: url('../img/arc.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    transition: transform 0.1s;
+    transform-origin: bottom;
+
+    &:nth-child(2) {
+        transform: rotate(180deg);
+
+        > .select-creature-widget-option-content {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.select-creature-widget-option-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: calc(6px* var(--scale));
-
-    position: absolute;
-    width: 20vmin;
-    height: 20vmin;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -50%);
-
-    transition: transform 0.1s;
-
-    &:nth-child(1) {
-        top: -20vmin;
-    }
-
-    &:nth-child(2) {
-        top: 20vmin;
-    }
+    height: 100%;
+    font-size: calc(4px* var(--scale));
 }
 
 .select-creature-widget-option__selected {
-    transform: translate(-50%, -50%) scale(1.1) ;
-    box-shadow: inset 0 0 calc(4px * var(--scale)) rgba(255, 255, 255, 0.5);
-    background-color: rgba(29, 29, 29, 0.4);
+    background-image: url('../img/arc-inset-glow.svg');
 }
 
 .select-creature-widget-canvas {
-    width: 50%;
-    height: 50%;
+    width: 25%;
+    height: 25%;
     image-rendering: pixelated;
-    margin: 5%;
+    margin-bottom: 5%;;
 }
 
 .hidden {
