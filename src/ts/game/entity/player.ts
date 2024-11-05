@@ -284,10 +284,10 @@ export class Player extends RunningEntity {
             guy.exhausted = true;
         }
 
-        // Switch if there are no more available guys of the current type.
-        if (this.availableGuys.every(g => g.type !== this.selectedGuyType)) {
-            this.switchType();
-        }
+        // // Switch if there are no more available guys of the current type.
+        // if (this.availableGuys.every(g => g.type !== this.selectedGuyType)) {
+        //     this.switchType();
+        // }
 
         return guy;
     }
