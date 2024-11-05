@@ -142,48 +142,47 @@ p {
 }
 
 .select-creature-widget {
-    width: 50vmin;
-    height: 50vmin;
-    border-radius: 100%;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    position: absolute;
 }
 
 .select-creature-widget-option {
-    height: 49%;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    font-size: calc(6px* var(--scale));
+
+    position: absolute;
+    width: 20vmin;
+    height: 20vmin;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+
+    transition: transform 0.1s;
 
     &:nth-child(1) {
-        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-        transform-origin: 50% 100%;
+        top: -20vmin;
     }
 
     &:nth-child(2) {
-        border-radius: 0 0 50% 50% / 0 0 100% 100%;
-        transform-origin: 50% 0;
+        top: 20vmin;
     }
-
-    font-size: calc(6px * var(--scale));
 }
 
 .select-creature-widget-option__selected {
-    transform: scale(1.1);
-    box-shadow: inset 0 0 calc(6px * var(--scale)) rgba(255, 255, 255, 0.5);
-    background-color: rgba(29, 29, 29, 0.8);
+    transform: translate(-50%, -50%) scale(1.1) ;
+    box-shadow: inset 0 0 calc(4px * var(--scale)) rgba(255, 255, 255, 0.5);
+    background-color: rgba(29, 29, 29, 0.4);
 }
 
 .select-creature-widget-canvas {
-    width: 10vmin;
-    height: 10vmin;
+    width: 50%;
+    height: 50%;
     image-rendering: pixelated;
-    margin: 2vmin;
+    margin: 5%;
 }
 
 .hidden {

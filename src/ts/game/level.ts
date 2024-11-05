@@ -247,10 +247,14 @@ export class Level implements UiStackElement {
     handleInput() {
         const keys = this.game.keys;
         if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
-            const creatureWidget = new CreatureWidget(this);
-            creatureWidget.show();
-            this.game.uiAndLevelStack.push(creatureWidget);
+            this.showCreatureWidget();
         }
+    }
+
+    showCreatureWidget() {
+        const creatureWidget = new CreatureWidget(this);
+        creatureWidget.show();
+        this.game.uiAndLevelStack.push(creatureWidget);
     }
 
     render(context: CanvasRenderingContext2D) {

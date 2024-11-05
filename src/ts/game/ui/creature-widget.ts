@@ -32,11 +32,13 @@ export class CreatureWidget implements UiStackElement {
 
             const type = option.dataset.type! as GuyType;
 
+            const offset = type === GuyType.Normal ? 1 : 0;
+
             Aseprite.drawSprite({
                 context,
                 image: 'lilguy',
                 frame: 0,
-                position: { x: canvas.width / 2, y: canvas.height },
+                position: { x: canvas.width / 2, y: canvas.height - offset },
                 anchorRatios: { x: 0.5, y: 1 },
                 layers: GuyType.sets[type],
             });
