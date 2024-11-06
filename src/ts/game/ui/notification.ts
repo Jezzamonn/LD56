@@ -10,6 +10,7 @@ export namespace Notifications {
         const notificationContainer = document.querySelector(
             '.notification-container'
         )!;
+        notificationContainer.classList.remove('hidden');
 
         const notification = document.createElement('div');
         notification.classList.add('notification');
