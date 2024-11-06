@@ -7,6 +7,7 @@ import {
     PHYSICS_SCALE,
     RESTART_KEYS,
     SELECT_KEYS,
+    TILE_SIZE,
     TIME_STEP,
 } from '../constants';
 import { Aseprite } from '../lib/aseprite';
@@ -18,9 +19,9 @@ import { Level } from './level';
 import { SFX } from './sfx/sfx';
 import { Tiles } from './tile/tiles';
 import { Notifications } from './ui/notification';
+import { UiStackElement } from './ui/ui-stack-element';
 import { CheckEveryFrame } from './updatable/check-every-frame';
 import { FrameCounter } from './updatable/frame-counter';
-import { UiStackElement } from './updatable/ui-stack-element';
 import { Updatable } from './updatable/updatable';
 
 export class Game {
@@ -89,8 +90,15 @@ export class Game {
         this.keys = new ComboKeys(new KeyboardKeys());
         this.keys.setUp();
 
+        const playerHasMoved = new CheckEveryFrame(() => {
+            const dx = this.level.playerStart.x - this.level.player.x;
+            return Math.abs(dx) > 3 * TILE_SIZE;
+        });
+        this.updatables.push(playerHasMoved);
+
         Notifications.addNotification(
-            'Use the arrow keys to move, and Z to jump.'
+            'Use the arrow keys to move, and Z to jump.',
+            playerHasMoved.promise
         );
     }
 

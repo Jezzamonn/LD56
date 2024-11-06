@@ -17,7 +17,7 @@ import { ObjectTile } from './tile/object-layer';
 import { Tiles } from './tile/tiles';
 import { CreatureWidget } from './ui/creature-widget';
 import { GuyTotals } from './ui/guy-totals';
-import { UiStackElement } from './updatable/ui-stack-element';
+import { UiStackElement } from './ui/ui-stack-element';
 
 // Contains everything in one level, including the tiles and the entities.
 export class Level implements UiStackElement {
@@ -31,7 +31,7 @@ export class Level implements UiStackElement {
 
     tiles: Tiles = new Tiles(0, 0);
 
-    start: Point = { x: 0, y: 0 };
+    playerStart: Point = { x: 0, y: 0 };
 
     won = false;
 
@@ -84,7 +84,7 @@ export class Level implements UiStackElement {
         for (const entity of entityLayer.entityInstances) {
             switch (entity.__identifier) {
                 case 'Spawn':
-                    this.start = {
+                    this.playerStart = {
                         x: physFromPx(entity.px[0]),
                         y: physFromPx(entity.px[1]),
                     };
@@ -174,8 +174,8 @@ export class Level implements UiStackElement {
 
     spawnPlayer() {
         const player = new Player(this);
-        player.midX = this.start.x;
-        player.maxY = this.start.y;
+        player.midX = this.playerStart.x;
+        player.maxY = this.playerStart.y;
         this.immediatelyAddEntity(player);
 
         this.player = player;

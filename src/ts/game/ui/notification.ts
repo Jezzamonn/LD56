@@ -3,7 +3,7 @@ import { wait } from '../../lib/util';
 export namespace Notifications {
     export async function addNotification(
         text: string,
-        removeNotificationFn: (() => Promise<void>) | undefined = undefined
+        removeNotificationPromise: Promise<void> | undefined = undefined
     ): Promise<void> {
         clear();
 
@@ -19,8 +19,8 @@ export namespace Notifications {
         await wait(0.1);
         notification.classList.add('shown-notification');
 
-        if (removeNotificationFn) {
-            await removeNotificationFn();
+        if (removeNotificationPromise) {
+            await removeNotificationPromise;
         } else {
             await wait(10);
         }

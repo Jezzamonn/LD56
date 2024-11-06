@@ -2,7 +2,7 @@ import { DOWN_KEYS, JUMP_KEYS, SELECT_KEYS, SHOOT_KEYS, SWITCH_WEAPON_KEYS, UP_K
 import { Aseprite } from '../../lib/aseprite';
 import { GuyType } from "../entity/guy";
 import { Level } from '../level';
-import { UiStackElement } from '../updatable/ui-stack-element';
+import { UiStackElement } from './ui-stack-element';
 
 const DISMISS_KEYS = SWITCH_WEAPON_KEYS.concat(SELECT_KEYS, JUMP_KEYS, SHOOT_KEYS);
 
