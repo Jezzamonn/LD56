@@ -42,6 +42,8 @@ export class Level implements UiStackElement {
     }
     done: boolean;
 
+    fastForwardSpeed = 1;
+
     init() {
         const level = ldtk.levels[0];
         const width = level.pxWid / TILE_SIZE_PX;
@@ -208,8 +210,8 @@ export class Level implements UiStackElement {
 
     update(dt: number) {
         // DEBUG: Run the game faster to test it faster.
-        if (DEBUG && this.game.keys.anyIsPressed(['ShiftLeft', 'ShiftRight'])) {
-            dt *= 2;
+        if (DEBUG) {
+            dt *= this.fastForwardSpeed;
         }
 
         for (const entity of this.entities) {
@@ -248,6 +250,21 @@ export class Level implements UiStackElement {
         const keys = this.game.keys;
         if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
             this.showCreatureWidget();
+        }
+
+        if (DEBUG) {
+            if (keys.wasPressedThisFrame('Digit4')) {
+                this.fastForwardSpeed = 4;
+            }
+            if (keys.wasPressedThisFrame('Digit3')) {
+                this.fastForwardSpeed = 3;
+            }
+            if (keys.wasPressedThisFrame('Digit2')) {
+                this.fastForwardSpeed = 2;
+            }
+            if (keys.wasPressedThisFrame('Digit1')) {
+                this.fastForwardSpeed = 1;
+            }
         }
     }
 
