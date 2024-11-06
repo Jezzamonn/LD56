@@ -6,7 +6,7 @@
             </feComponentTransfer>
             <feGaussianBlur stdDeviation="5"/>
             <feOffset dx="0" dy="0" result="offsetBlur"/>
-            <feFlood flood-color="#333"/>
+            <feFlood flood-color="#666"/>
             <feComposite in2="offsetBlur" operator="in"/>
             <feComposite in2="SourceAlpha" operator="in"/>
             <feMerge>
@@ -15,5 +15,5 @@
             </feMerge>
         </filter>
     </defs>
-    <path d="M 0,0 L 50,-50 A 70.71,70.71 0 0 0 -50,-50 L -20,-20 A 28.28,28.28 0 0 1 20,-20 Z" fill="#111" filter="url(#inset-glow)"/>
+    <path d="M 20,-20 L 50,-50 A 70.71,70.71 0 0 0 -50,-50 L -20,-20 A 28.28,28.28 0 0 1 20,-20 Z" fill="#111" stroke="#aaa" stroke-width="0.5" filter="url(#inset-glow)"/>
 </svg>

@@ -136,10 +136,6 @@ export class Level implements UiStackElement {
 
         this.spawnPlayer();
 
-        if (DEBUG) {
-            this.loadPlayerPosition();
-        }
-
         Decor.addDecorToLevel(this);
     }
 

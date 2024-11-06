@@ -32,6 +32,7 @@ export class Game {
     simulatedTimeMs: number | undefined;
 
     levelIndex = 0;
+    level: Level;
     uiAndLevelStack: UiStackElement[] = [];
 
     keys: RegularKeys;
@@ -75,6 +76,10 @@ export class Game {
         this.doAnimationLoop();
 
         this.startLevel();
+
+        if (DEBUG) {
+            this.level.loadPlayerPosition();
+        }
     }
 
     startPlaying() {
@@ -90,9 +95,9 @@ export class Game {
     }
 
     startLevel() {
-        const level = new Level(this);
-        level.init();
-        this.uiAndLevelStack = [level];
+        this.level = new Level(this);
+        this.level.init();
+        this.uiAndLevelStack = [this.level];
     }
 
     doAnimationLoop() {
