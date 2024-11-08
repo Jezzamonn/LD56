@@ -18,6 +18,7 @@ import { centerCanvas } from './camera';
 import { Level } from './level';
 import { SFX } from './sfx/sfx';
 import { Tiles } from './tile/tiles';
+import { CreatureWidget } from './ui/creature-widget';
 import { Notifications } from './ui/notification';
 import { UiStackElement } from './ui/ui-stack-element';
 import { CheckEveryFrame } from './updatable/check-every-frame';
@@ -40,6 +41,7 @@ export class Game {
     nullKeys = new NullKeys();
 
     slowMoFactor = 1;
+    skipMainUpdate = false;
 
     cutscenePromise: Promise<void> | undefined;
 
@@ -90,15 +92,12 @@ export class Game {
         this.keys = new ComboKeys(new KeyboardKeys());
         this.keys.setUp();
 
-        const playerHasMoved = new CheckEveryFrame(() => {
-            const dx = this.level.playerStart.x - this.level.player.x;
-            return Math.abs(dx) > 3 * TILE_SIZE;
-        });
-        this.updatables.push(playerHasMoved);
-
         Notifications.addNotification(
             'Use the arrow keys to move, and Z to jump.',
-            playerHasMoved.promise
+            this.waitFor(() => {
+                const dx = this.level.playerStart.x - this.level.player.x;
+                return Math.abs(dx) > 3 * TILE_SIZE;
+            })
         );
     }
 
@@ -165,10 +164,13 @@ export class Game {
                 }
             }
 
-            const currentUi = this.uiAndLevelStack[this.uiAndLevelStack.length - 1];
-            currentUi.update(dt * this.slowMoFactor);
-            if (currentUi.done) {
-                this.uiAndLevelStack.pop();
+            if (!this.skipMainUpdate) {
+                const currentUi =
+                    this.uiAndLevelStack[this.uiAndLevelStack.length - 1];
+                currentUi.update(dt * this.slowMoFactor);
+                if (currentUi.done) {
+                    this.uiAndLevelStack.pop();
+                }
             }
 
             this.keys.resetFrame();
@@ -236,8 +238,8 @@ export class Game {
 
     static async preload() {
         const spritesPromise = Aseprite.loadImages([
-            { name: 'player', basePath: 'sprites', filters: [HURT_FILTER]},
-            { name: 'creature', basePath: 'sprites', filters: [HURT_FILTER]},
+            { name: 'player', basePath: 'sprites', filters: [HURT_FILTER] },
+            { name: 'creature', basePath: 'sprites', filters: [HURT_FILTER] },
             { name: 'lilguy', basePath: 'sprites' },
             { name: 'torch', basePath: 'sprites' },
             { name: 'column', basePath: 'sprites' },
@@ -277,17 +279,23 @@ export class Game {
         return keyPressCheck.promise;
     }
 
+    waitFor(predicate: () => boolean): Promise<void> {
+        const check = new CheckEveryFrame(predicate);
+        this.updatables.push(check);
+        return check.promise;
+    }
+
     // Cutscene stuff
     showTitle() {
         this.cutscenePromise = this.titleScreenCutscene();
     }
 
-    async titleScreenCutscene() {
+    private async titleScreenCutscene() {
         Notifications.clear();
 
         await this.waitForFrames(2);
 
-        this.slowMoFactor = 0;
+        this.skipMainUpdate = true;
         const titleElem = document.querySelector('.title')!;
         titleElem.classList.remove('hidden');
 
@@ -312,23 +320,41 @@ export class Game {
 
         await closeKeyPress;
 
-        this.slowMoFactor = 1;
+        this.skipMainUpdate = false;
         titleElem.classList.add('hidden');
         Sounds.setSong('exploring');
     }
-}
 
-function* generatorWait(time: number) {
-    for (let i = 0; i < time * FPS; i++) {
-        yield;
+    startHowToSwitchGuyCutscene() {
+        this.cutscenePromise = this.howToSwitchGuyCutscene();
     }
-}
 
-function* skippableWait(time: number, keys: RegularKeys) {
-    for (let i = 0; i < time * FPS; i++) {
-        if (keys.anyWasPressedThisFrame(SELECT_KEYS)) {
-            return;
-        }
-        yield;
+    private async howToSwitchGuyCutscene() {
+        // Add message spoken by the new guy.
+        Notifications.addNotification(
+            '"Oh hey there! First time meeting a creature like me?<br><br>Press shift to switch what type of guy you have equipped."',
+            // Never hide, because the cutscene will hide it for us.
+            new Promise(() => {})
+        );
+
+        await this.waitFor(() =>
+            this.uiAndLevelStack.some((ui) => ui instanceof CreatureWidget)
+        );
+        Notifications.clear();
+        // Wait for the UI to be dismissed.
+        await this.waitFor(() =>
+            this.uiAndLevelStack.every((ui) => !(ui instanceof CreatureWidget))
+        );
+
+        const playerY = this.level.player.y;
+        Notifications.addNotification(
+            '"Press jump again in midair to use our secondary ability."',
+            // Never hide, because the cutscene will hide it for us.
+            this.waitFor(
+                () =>
+                    this.level.player.isStanding() &&
+                    this.level.player.y < playerY
+            )
+        );
     }
 }

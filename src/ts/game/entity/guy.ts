@@ -30,8 +30,12 @@ export namespace GuyType {
 }
 const uniqueSet = new Set(['unique']);
 
+const hasCollectedGuyOfType = {
+    [GuyType.Normal]: false,
+    [GuyType.Fire]: false,
+};
+
 const dialog = [
-    `You found a tiny creature! "Hi, I'm greg! It's nice to meet you! Please don't press the X button."`,
     `"Hi! Hello!"`,
     `"Hey! I'm here!"`,
     `"Hi, my name is Samuel. My friends call me Sam."`,
@@ -41,7 +45,6 @@ const dialog = [
     `"Hey! I'm here!"`,
     `"Ahoy, matey!! Hehe"`,
     `"Hiii!!"`,
-    `"Pressing Z in the air will use our secondary ability! Press shift to switch between abilities!"`,
     `"Gray guys stall you in the air."`,
 ];
 let dialogIndex = 0;
@@ -100,8 +103,7 @@ export class Guy extends RunningEntity {
 
         if (this.followingPlayer) {
             this.followPlayer(dt);
-        }
-        else {
+        } else {
             this.maybeSmallJump();
             this.dampX(dt);
         }
@@ -126,9 +128,27 @@ export class Guy extends RunningEntity {
 
             if (wasFirstAdded) {
                 SFX.play('pickup');
-                Notifications.addNotification(getDialog());
-            }
-            else if (wasAdded) {
+
+                if (!hasCollectedGuyOfType[this.type]) {
+                    hasCollectedGuyOfType[this.type] = true;
+                    if (this.type === GuyType.Normal) {
+                        // Tutorial message about firing the guy.
+                        const message =
+                            `"Hello, nice to meet you! My name is jeff.<br><br>` +
+                            `Please don't press the X button."`;
+                        Notifications.addNotification(
+                            message,
+                            // Never hide, because the title cutscene will hide it for us.
+                            new Promise(() => {})
+                        );
+                    } else if (this.type === GuyType.Fire) {
+                        // Tutorial message about switching between guys.
+                        this.level.game.startHowToSwitchGuyCutscene();
+                    }
+                } else {
+                    Notifications.addNotification(getDialog());
+                }
+            } else if (wasAdded) {
                 SFX.play('pickupAgain');
             }
         }

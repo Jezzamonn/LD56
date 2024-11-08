@@ -2,7 +2,7 @@ import { wait } from '../../lib/util';
 
 export namespace Notifications {
     export async function addNotification(
-        text: string,
+        htmlText: string,
         removeNotificationPromise: Promise<void> | undefined = undefined
     ): Promise<void> {
         clear();
@@ -14,7 +14,7 @@ export namespace Notifications {
 
         const notification = document.createElement('div');
         notification.classList.add('notification');
-        notification.textContent = text;
+        notification.innerHTML = htmlText;
         notificationContainer.appendChild(notification);
         await wait(0.1);
         notification.classList.add('shown-notification');
