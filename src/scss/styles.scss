@@ -117,6 +117,10 @@ p {
     transform: translateY(0);
 }
 
+.notification-container {
+    pointer-events: none;
+}
+
 .notification {
     position: absolute;
     bottom: -100%;

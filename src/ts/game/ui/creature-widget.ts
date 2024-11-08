@@ -4,17 +4,24 @@ import { GuyType } from "../entity/guy";
 import { Level } from '../level';
 import { UiStackElement } from './ui-stack-element';
 
-const DISMISS_KEYS = SWITCH_WEAPON_KEYS.concat(SELECT_KEYS, JUMP_KEYS, SHOOT_KEYS);
+const DISMISS_KEYS = SWITCH_WEAPON_KEYS.concat(
+    SELECT_KEYS,
+    JUMP_KEYS,
+    SHOOT_KEYS
+);
 
 export class CreatureWidget implements UiStackElement {
-
     static hasInitialised = false;
 
     done = false;
 
-    readonly container = document.querySelector('.select-creature-container')! as HTMLElement;
+    readonly container = document.querySelector(
+        '.select-creature-container'
+    )! as HTMLElement;
     // Add create images to each selection
-    readonly options = this.container.querySelectorAll('.select-creature-widget-option') as NodeListOf<HTMLElement>;
+    readonly options = this.container.querySelectorAll(
+        '.select-creature-widget-option'
+    ) as NodeListOf<HTMLElement>;
 
     constructor(private level: Level) {}
 
@@ -49,6 +56,20 @@ export class CreatureWidget implements UiStackElement {
         this.init();
         this.container.classList.remove('hidden');
 
+        for (const option of this.options) {
+            const type = option.dataset.type! as GuyType;
+
+            option.onmouseenter = () => {
+                this.level.player.selectedGuyType = type;
+                this.updateSelection();
+            };
+            option.onclick = () => {
+                this.level.player.selectedGuyType = type;
+                this.updateSelection();
+                this.hide();
+            };
+        }
+
         this.updateSelection();
     }
 
@@ -60,8 +81,10 @@ export class CreatureWidget implements UiStackElement {
     updateSelection() {
         const guyType = this.level.player.selectedGuyType;
         for (const option of this.options) {
-            option.classList.toggle('select-creature-widget-option__selected',
-                option.dataset.type === guyType);
+            option.classList.toggle(
+                'select-creature-widget-option__selected',
+                option.dataset.type === guyType
+            );
         }
     }
 
@@ -76,8 +99,7 @@ export class CreatureWidget implements UiStackElement {
         let selection: GuyType | undefined;
         if (keys.anyWasPressedThisFrame(UP_KEYS)) {
             selection = GuyType.Normal;
-        }
-        else if (keys.anyWasPressedThisFrame(DOWN_KEYS)) {
+        } else if (keys.anyWasPressedThisFrame(DOWN_KEYS)) {
             selection = GuyType.Fire;
         }
 
