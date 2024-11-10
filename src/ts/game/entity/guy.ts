@@ -45,7 +45,6 @@ const dialog = [
     `"Hey! I'm here!"`,
     `"Ahoy, matey!! Hehe"`,
     `"Hiii!!"`,
-    `"Gray guys stall you in the air."`,
 ];
 let dialogIndex = 0;
 function getDialog(): string {

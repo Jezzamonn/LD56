@@ -1,6 +1,7 @@
 import ldtk from '../../../level/creatures.json';
 import { FacingDir, Point } from '../common';
 import { DEBUG, physFromPx, SWITCH_WEAPON_KEYS, TILE_SIZE_PX } from '../constants';
+import { Level as LdtkLevel } from '../lib/ldtk-json';
 import { Background } from './background';
 import { FocusCamera } from './camera';
 import { Column } from './entity/column';
@@ -10,6 +11,7 @@ import { Entity } from './entity/entity';
 import { Guy, GuyType } from './entity/guy';
 import { Player } from './entity/player';
 import { Torch } from './entity/torch';
+import { Trigger } from './entity/trigger';
 import { Waterfall } from './entity/waterfall';
 import { Game } from './game';
 import { BaseTile } from './tile/base-layer';
@@ -45,7 +47,7 @@ export class Level implements UiStackElement {
     fastForwardSpeed = 1;
 
     init() {
-        const level = ldtk.levels[0];
+        const level: LdtkLevel = ldtk.levels[0];
         const width = level.pxWid / TILE_SIZE_PX;
         const height = level.pxHei / TILE_SIZE_PX;
 
@@ -54,7 +56,7 @@ export class Level implements UiStackElement {
             y: (TILE_SIZE_PX * height) / 2,
         });
 
-        const intGrid = level.layerInstances.find((layer) => layer.__identifier === 'IntGrid')!;
+        const intGrid = level.layerInstances!.find((layer) => layer.__identifier === 'IntGrid')!;
         this.tiles = new Tiles(intGrid.__cWid, intGrid.__cHei);
         for (let y = 0; y < intGrid.__cHei; y++) {
             for (let x = 0; x < intGrid.__cWid; x++) {
@@ -80,13 +82,13 @@ export class Level implements UiStackElement {
         }
 
         this.entities = [];
-        const entityLayer = level.layerInstances.find((layer) => layer.__identifier === 'Entities')!;
+        const entityLayer = level.layerInstances!.find((layer) => layer.__identifier === 'Entities')!;
         for (const entity of entityLayer.entityInstances) {
             switch (entity.__identifier) {
                 case 'Spawn':
                     this.playerStart = {
                         x: physFromPx(entity.px[0]),
-                        y: physFromPx(entity.px[1]),
+                        y: physFromPx(entity.px[1] - 1),
                     };
                     break;
                 case 'Lilguy':
@@ -130,6 +132,16 @@ export class Level implements UiStackElement {
                     waterfall.midX = physFromPx(entity.px[0]);
                     waterfall.midY = physFromPx(entity.px[1]);
                     this.immediatelyAddEntity(waterfall);
+                    break;
+                case 'TriggerArea':
+                    const trigger = new Trigger(this, entity, entityLayer.entityInstances);
+                    this.immediatelyAddEntity(trigger);
+                    break;
+                case 'StopArea':
+                    // Handled by thbe trigger.
+                    break;
+                default:
+                    console.warn(`Unknown entity type: ${entity.__identifier}`);
                     break;
             }
         }

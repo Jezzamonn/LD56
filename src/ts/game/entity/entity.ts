@@ -22,7 +22,7 @@ export class Entity {
 
     maxFallSpeed = 3 * PHYSICS_SCALE * FPS;
 
-    debugColor: string | undefined = '#ff00ff';
+    debugColor: string | undefined;
 
     constructor(level: Level) {
         this.level = level;
