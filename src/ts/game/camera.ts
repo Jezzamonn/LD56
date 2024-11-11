@@ -10,21 +10,37 @@ export class Camera {
     applyTransform(context: CanvasRenderingContext2D) {}
 }
 
+type TargetFunction = () => { x: number, y: number };
+
 export class FocusCamera extends Camera {
 
-    target: (() => { x: number, y: number }) | undefined;
+    private targets: TargetFunction[] = [];
 
-    curPos: Point | undefined;
+    private curPos: Point | undefined;
 
     constructor() {
         super();
     }
 
-    update(dt: number) {
-        if (!this.target) {
+    pushTarget(targetFn: TargetFunction) {
+        this.targets.push(targetFn);
+    }
+
+    popTarget() {
+        // To be safe, don't ever pop the last target.
+        if (this.targets.length <= 1) {
+            console.error('Tried to pop last target from FocusCamera');
             return;
         }
-        const targetPos = this.target();
+        this.targets.pop();
+    }
+
+    update(dt: number) {
+        const targetFn = this.targets[this.targets.length - 1];
+        if (!targetFn) {
+            return;
+        }
+        const targetPos = targetFn();
         if (!this.curPos) {
             this.curPos = targetPos;
             return;

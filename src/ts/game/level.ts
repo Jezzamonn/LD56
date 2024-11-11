@@ -192,7 +192,7 @@ export class Level implements UiStackElement {
 
         this.player = player;
 
-        this.camera.target = () => player.cameraFocus();
+        this.camera.pushTarget(() => player.cameraFocus());
     }
 
     savePlayerPosition() {

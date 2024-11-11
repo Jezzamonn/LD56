@@ -1,5 +1,8 @@
 import { physFromPx } from '../../constants';
-import { EntityInstance, ReferenceToAnEntityInstance } from '../../lib/ldtk-json';
+import {
+    EntityInstance,
+    ReferenceToAnEntityInstance,
+} from '../../lib/ldtk-json';
 import { Level } from '../level';
 import { Notifications } from '../ui/notification';
 import { Entity } from './entity';
@@ -14,7 +17,11 @@ export class Trigger extends Entity {
     donePromise: Promise<void>;
     resolveDone: () => void;
 
-    constructor(level: Level, ldtkEntity: EntityInstance, ldtkEntities: EntityInstance[]) {
+    constructor(
+        level: Level,
+        ldtkEntity: EntityInstance,
+        ldtkEntities: EntityInstance[]
+    ) {
         super(level);
         this.minX = physFromPx(ldtkEntity.px[0]);
         this.minY = physFromPx(ldtkEntity.px[1]);
@@ -22,15 +29,17 @@ export class Trigger extends Entity {
         this.h = physFromPx(ldtkEntity.height);
 
         this.triggerName = ldtkEntity.fieldInstances.find(
-            f => f.__identifier === 'TriggerName'
+            (f) => f.__identifier === 'TriggerName'
         )!.__value as string;
 
         const stopAreaRef = ldtkEntity.fieldInstances.find(
-            f => f.__identifier === 'StopArea'
-        )!.__value as (ReferenceToAnEntityInstance | null);
+            (f) => f.__identifier === 'StopArea'
+        )!.__value as ReferenceToAnEntityInstance | null;
 
         if (stopAreaRef) {
-            const stopArea = ldtkEntities.find(e => e.iid === stopAreaRef.entityIid);
+            const stopArea = ldtkEntities.find(
+                (e) => e.iid === stopAreaRef.entityIid
+            );
             if (stopArea) {
                 this.stopArea = new Entity(level);
                 this.stopArea.minX = physFromPx(stopArea.px[0]);
@@ -41,7 +50,7 @@ export class Trigger extends Entity {
             }
         }
 
-        this.donePromise = new Promise(resolve => {
+        this.donePromise = new Promise((resolve) => {
             this.resolveDone = resolve;
         });
     }
@@ -51,6 +60,9 @@ export class Trigger extends Entity {
         const inRange = this.isTouchingEntity(this.level.player);
         if (inRange && !this.isTriggered) {
             this.trigger();
+        }
+        if (!inRange && this.isTriggered) {
+            this.untrigger();
         }
         this.isTriggered = inRange;
 
@@ -66,10 +78,34 @@ export class Trigger extends Entity {
                 Notifications.addNotification(
                     "The grey creatures' secondary ability lets you glide over gaps by holding the jump button in the air.",
                     this.donePromise
-                )
+                );
+                break;
+            case 'halfway':
+                Notifications.addNotification(
+                    'Congratulations, you made it through the core of the game!<br><br>' +
+                        "If you're clever, there's a secret place to find. See if you can figure it out! As a hint, it might involve going back-tracking through some of the places you've been before...",
+                    this.donePromise
+                );
+                break;
+            case 'camera-focus':
+                this.level.camera.pushTarget(() => ({
+                    x: this.midX,
+                    y: this.midY,
+                }));
                 break;
             default:
                 console.warn(`Unknown trigger name: ${this.triggerName}`);
+                break;
+        }
+    }
+
+    untrigger() {
+        switch (this.triggerName) {
+            case 'halfway':
+                Notifications.clear();
+                break;
+            case 'camera-focus':
+                this.level.camera.popTarget();
                 break;
         }
     }
