@@ -200,20 +200,26 @@ export class Game {
     resize() {
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        const pixelScale = window.devicePixelRatio || 1;
+        const subPixelScale = window.devicePixelRatio || 1;
 
         // Set canvas size
         const xScale = windowWidth / GAME_WIDTH_PX;
         const yScale = windowHeight / GAME_HEIGHT_PX;
 
         // Math.min = scale to fit
-        const pxScale = Math.floor(Math.min(xScale, yScale) * pixelScale);
+        const pxScale = Math.floor(Math.min(xScale, yScale) * subPixelScale);
         this.scale = pxScale / PHYSICS_SCALE;
 
-        document.body.style.setProperty('--scale', `${pxScale / pixelScale}`);
+        document.body.style.setProperty('--scale', `${pxScale / subPixelScale}`);
 
-        this.canvas.width = windowWidth * pixelScale;
-        this.canvas.height = windowHeight * pixelScale;
+        // // Debug: Restricts the canvas size to the size that can be normally seen.
+        // this.canvas.width = GAME_WIDTH_PX * pxScale;
+        // this.canvas.height = GAME_HEIGHT_PX * pxScale;
+        // this.canvas.style.width = `${GAME_WIDTH_PX * pxScale / subPixelScale}px`;
+        // this.canvas.style.height = `${GAME_HEIGHT_PX * pxScale / subPixelScale}px`;
+
+        this.canvas.width = windowWidth * subPixelScale;
+        this.canvas.height = windowHeight * subPixelScale;
         this.canvas.style.width = `${windowWidth}px`;
         this.canvas.style.height = `${windowHeight}px`;
         // Need to call this again when the canvas size changes.

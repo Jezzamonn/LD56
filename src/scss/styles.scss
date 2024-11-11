@@ -41,6 +41,10 @@ p {
     height: var(--pageHeight);
     width: var(--pageWidth);
     overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .guy-totals {
