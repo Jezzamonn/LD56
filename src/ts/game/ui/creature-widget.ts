@@ -59,7 +59,7 @@ export class CreatureWidget implements UiStackElement {
         for (const option of this.options) {
             const type = option.dataset.type! as GuyType;
 
-            option.onmouseenter = () => {
+            option.onmousemove = () => {
                 this.level.player.selectedGuyType = type;
                 this.updateSelection();
             };
