@@ -256,7 +256,7 @@ export class Level implements UiStackElement {
 
     handleInput() {
         const keys = this.game.keys;
-        if (keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
+        if (this.player.foundTypes.length > 1 && keys.anyWasPressedThisFrame(SWITCH_WEAPON_KEYS)) {
             this.showCreatureWidget();
         }
 
