@@ -63,6 +63,17 @@ Hiii!!
 Hi there!
 Wahoo! Hello!
 Hi!
+Hello! Hi!!
+Hi there!
+Hello hello!
+Heyyy!
+Hi!
+Howdy!
+Hello.
+Hiii!!
+Hi there!
+Wahoo! Hello!
+Hi!
 `.trim().split('\n').map(s => '"' + s.trim() + '"');
 
 let dialogIndex = 0;
