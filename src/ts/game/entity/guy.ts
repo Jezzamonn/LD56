@@ -35,25 +35,28 @@ const hasCollectedGuyOfType = {
     [GuyType.Fire]: false,
 };
 
-const dialog = [
-    `"Hi! Hello!"`,
-    `"Hey! I'm here!"`,
-    `"Hi, my name is Samuel. My friends call me Sam."`,
-    `"My name is Genevieve. My hobbies include hanging by the pool, and tax evasion."`,
-    `"Hi! Hello!"`,
-    `"Hello there, friend!"`,
-    `"Hey! I'm here!"`,
-    `"Ahoy, matey!! Hehe"`,
-    `"Hiii!!"`,
-];
+const dialog = `
+Hey, thanks for freeing me from that monster! I'll follow you around too.
+Hi, my name is Samuel. My friends call me Sam.
+My name is Genevieve. My hobbies include hanging by the pool, and tax evasion.
+Ahoy, matey!! Hehe. I'm Frank. Please to make your acquaintance.
+Hello, I'm Bob. I once had a staring contest with a pencil and lost.
+Hi there! They call me Alex. That's not my name, but they call me that. I wish I knew why.
+I'm Chloe. I'm a professional procrastinator and nap enthusiast.
+My name's Emily. I'm a coffee addict with a questionable sense of humor. It once got me jailed!
+You can call me Mark. I'm a walking contradiction! I'll let you figure out what I mean by that.
+Howdy, partner! They call me Rusty. I'm a bit "rusty" around the edges... haha. Just kidding.
+They call me the Shadow. I've seen things you wouldn't believe.
+Wahoo! I'm Bing. 'Bing Bong on the Clong', as I like to say!
+Yo, what's crackalackin'? I'm Quinn. I'm a bit of a troublemaker, but I'm a good listener. Unless you're boring.
+Lenny is my name. Let's get this show on the road!
+I'm Lila. I'm a bit of a mystery, even to myself.
+Zara. That's my name. Starts with a "Z" yeah. Pretty cool, I know.
+`.trim().split('\n').map(s => '"' + s.trim() + '"');
+
 let dialogIndex = 0;
 function getDialog(): string {
-    const nextDialog = dialog[dialogIndex];
-    dialogIndex++;
-    if (dialogIndex >= dialog.length) {
-        dialogIndex = 5;
-    }
-    return nextDialog;
+    return dialog[dialogIndex++];
 }
 
 // A lil guy that follows the player
@@ -133,7 +136,7 @@ export class Guy extends RunningEntity {
                     if (this.type === GuyType.Normal) {
                         // Tutorial message about firing the guy.
                         const message =
-                            `"Hello, nice to meet you! My name is jeff.<br><br>` +
+                            `"Hello, nice to meet you! My name is Jeff.<br><br>` +
                             `Please don't press the X button."`;
                         Notifications.addNotification(
                             message,
