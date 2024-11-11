@@ -52,6 +52,17 @@ Yo, what's crackalackin'? I'm Quinn. I'm a bit of a troublemaker, but I'm a good
 Lenny is my name. Let's get this show on the road!
 I'm Lila. I'm a bit of a mystery, even to myself.
 Zara. That's my name. Starts with a "Z" yeah. Pretty cool, I know.
+Hello! Hi!!
+Hi there!
+Hello hello!
+Heyyy!
+Hi!
+Howdy!
+Hello.
+Hiii!!
+Hi there!
+Wahoo! Hello!
+Hi!
 `.trim().split('\n').map(s => '"' + s.trim() + '"');
 
 let dialogIndex = 0;
