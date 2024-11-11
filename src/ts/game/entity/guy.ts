@@ -84,7 +84,7 @@ function getDialog(): string {
 // A lil guy that follows the player
 export class Guy extends RunningEntity {
     runSpeed = 1.5 * PHYSICS_SCALE * FPS;
-    jumpSpeed = 4 * PHYSICS_SCALE * FPS;
+    jumpSpeed = 3.1 * PHYSICS_SCALE * FPS;
     smallJumpSpeed = 1 * PHYSICS_SCALE * FPS;
     groundAccel = (0.35 * PHYSICS_SCALE * FPS * FPS) / 2;
     airAccel = (0.125 * PHYSICS_SCALE * FPS * FPS) / 2;
@@ -216,14 +216,13 @@ export class Guy extends RunningEntity {
             this.tryingToJump = false;
         }
 
-        if (this.isStanding()) {
-            if (this.tryingToJump && this.jumpCount <= 0 && playerIsAbove) {
-                this.jump();
-                this.tryingToJump = false;
-                this.jumpCount = 0;
-            } else {
-                this.maybeSmallJump();
-            }
+        // No isStanding() check, lil guys can midair jump as much as they want.
+        if (this.tryingToJump && this.jumpCount <= 0 && playerIsAbove) {
+            this.jump();
+            this.tryingToJump = false;
+            this.jumpCount = 0;
+        } else if (this.isStanding()) {
+            this.maybeSmallJump();
         }
     }
 
