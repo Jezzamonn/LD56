@@ -11,6 +11,7 @@ export class Trigger extends Entity {
     triggerName = '';
 
     stopArea: Entity | undefined;
+    message: string | undefined;
 
     isTriggered = false;
 
@@ -31,6 +32,10 @@ export class Trigger extends Entity {
         this.triggerName = ldtkEntity.fieldInstances.find(
             (f) => f.__identifier === 'TriggerName'
         )!.__value as string;
+
+        this.message = ldtkEntity.fieldInstances.find(
+            (f) => f.__identifier === 'Message'
+        )?.__value as string | undefined;
 
         const stopAreaRef = ldtkEntity.fieldInstances.find(
             (f) => f.__identifier === 'StopArea'
@@ -80,10 +85,9 @@ export class Trigger extends Entity {
                     this.donePromise
                 );
                 break;
-            case 'halfway':
+            case 'message':
                 Notifications.addNotification(
-                    'Congratulations, you made it through the core of the game!<br><br>' +
-                        "If you're clever, there's a secret place to find. See if you can figure it out! As a hint, it might involve going back-tracking through some of the places you've been before...",
+                    (this.message ?? '').replace(/\n/g, '<br>'),
                     this.donePromise
                 );
                 break;

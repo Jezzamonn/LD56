@@ -56,7 +56,7 @@ Zara. That's my name. Starts with a "Z" yeah. Pretty cool, I know.
 
 let dialogIndex = 0;
 function getDialog(): string {
-    return dialog[dialogIndex++];
+    return dialog[dialogIndex++ % dialog.length];
 }
 
 // A lil guy that follows the player
